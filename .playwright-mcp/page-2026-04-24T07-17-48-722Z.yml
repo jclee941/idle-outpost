@@ -1,0 +1,640 @@
+- generic [ref=e86]:
+  - banner [ref=e66]:
+    - generic [ref=e68]:
+      - generic [ref=e69]:
+        - button "Guide" [ref=e71] [cursor=pointer]:
+          - generic [ref=e88]:
+            - img
+        - generic [ref=e89]:
+          - link "YouTube Home" [ref=e90] [cursor=pointer]:
+            - /url: /
+            - generic [ref=e95]:
+              - img
+          - generic [ref=e96]: KR
+        - button "Skip navigation" [ref=e100] [cursor=pointer]:
+          - generic [ref=e101]: Skip navigation
+      - generic [ref=e73]:
+        - search [ref=e74]:
+          - generic [ref=e75]:
+            - combobox "Search" [expanded] [ref=e105]
+            - button "Search" [ref=e79] [cursor=pointer]:
+              - generic [ref=e107]:
+                - img
+        - generic [ref=e109]:
+          - button "Search with your voice" [ref=e111] [cursor=pointer]:
+            - generic [ref=e115]:
+              - img
+          - tooltip "tooltip"
+      - generic [ref=e119]:
+        - button "Settings" [ref=e124] [cursor=pointer]:
+          - generic [ref=e127]:
+            - img
+        - link "Sign in" [ref=e130] [cursor=pointer]:
+          - /url: https://accounts.google.com/ServiceLogin?service=youtube&uilel=3&passive=true&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den%26next%3Dhttps%253A%252F%252Fwww.youtube.com%252Fwatch%253Fv%253DW0qPLd3K_Co&hl=en&ec=65620
+          - generic [ref=e134]:
+            - img
+          - generic [ref=e135]: Sign in
+  - main [ref=e140]:
+    - complementary [ref=e146]:
+      - generic "YouTube Video Player" [ref=e5]:
+        - button "Channel watermark" [ref=e12] [cursor=pointer]:
+          - img "Channel watermark" [ref=e13]
+        - generic [ref=e14]:
+          - generic [ref=e15] [cursor=pointer]:
+            - slider "Seek slider" [ref=e16]
+            - generic:
+              - generic:
+                - generic:
+                  - slider "Click or scroll the panel for the precise seeking."
+          - generic [ref=e25]:
+            - generic [ref=e26]:
+              - button "Pause (k)" [ref=e27] [cursor=pointer]:
+                - img
+              - generic [ref=e28]:
+                - button "Mute (m)" [ref=e30] [cursor=pointer]:
+                  - img
+                - slider "Volume"
+              - button "0 Minutes 25 Seconds of 1 Minutes 34 Seconds" [ref=e1090] [cursor=pointer]: 0:25 / 1:34
+            - generic [ref=e35]:
+              - generic [ref=e36]:
+                - button "Autoplay is on" [ref=e157] [cursor=pointer]
+                - button "Subtitles/closed captions unavailable keyboard shortcut c" [ref=e1088] [cursor=pointer]:
+                  - generic [ref=e38]:
+                    - img
+                - button "Settings" [ref=e39] [cursor=pointer]:
+                  - img
+              - generic [ref=e40]:
+                - button "Theater mode (t)" [ref=e41] [cursor=pointer]:
+                  - img
+                - button "Full screen (f)" [ref=e42] [cursor=pointer]:
+                  - img
+    - generic [ref=e163]:
+      - generic [ref=e165]:
+        - heading "How to Beat the Event Without Spending a Dime" [level=1] [ref=e167]
+        - generic [ref=e168]:
+          - generic [ref=e169]:
+            - generic [ref=e170]:
+              - link [ref=e171] [cursor=pointer]:
+                - /url: /@IdleOutpost
+              - generic [ref=e173]:
+                - generic "Idle Outpost" [ref=e177]:
+                  - link "Idle Outpost" [ref=e178] [cursor=pointer]:
+                    - /url: /@IdleOutpost
+                - generic "109 thousand subscribers" [ref=e179]: 109K subscribers
+            - generic [ref=e183]:
+              - button "Subscribe to Idle Outpost." [ref=e185] [cursor=pointer]:
+                - generic [ref=e186]: Subscribe
+              - generic:
+                - generic:
+                  - generic:
+                    - img
+                - generic:
+                  - img
+          - generic [ref=e193]:
+            - generic [ref=e194]:
+              - generic [ref=e198]:
+                - button "like this video along with 470 other people" [ref=e202] [cursor=pointer]:
+                  - generic [ref=e206]:
+                    - img
+                  - generic [ref=e207]: "470"
+                - button "Dislike this video" [ref=e214] [cursor=pointer]:
+                  - generic [ref=e218]:
+                    - img
+              - button "Share" [ref=e224] [cursor=pointer]:
+                - generic [ref=e228]:
+                  - img
+                - generic [ref=e229]: Share
+            - button "Save to playlist" [ref=e236] [cursor=pointer]:
+              - generic [ref=e240]:
+                - img
+              - generic [ref=e241]: Save
+            - button "More actions" [ref=e246] [cursor=pointer]:
+              - generic [ref=e250]:
+                - img
+        - generic [ref=e256]:
+          - generic [ref=e259]:
+            - text: 19,456 views Jul 2, 2025
+            - link "#idleoutpost" [ref=e260] [cursor=pointer]:
+              - /url: /hashtag/idleoutpost
+            - link "#idleoutpostgame" [ref=e261] [cursor=pointer]:
+              - /url: /hashtag/idleoutpostgame
+          - generic [ref=e262]:
+            - generic [ref=e1117]:
+              - link "#idleoutpost" [ref=e1119] [cursor=pointer]:
+                - /url: /hashtag/idleoutpost
+              - link "#idleoutpostgame" [ref=e1121] [cursor=pointer]:
+                - /url: /hashtag/idleoutpostgame
+              - text: 🧟‍♂️ Download Idle Outpost ►
+              - link "https://idleoutpost.link/game" [ref=e1123] [cursor=pointer]:
+                - /url: https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqbXFRMTFWX1o4MEhRaTJCZlhJYXhfM3JxN0oyZ3xBQ3Jtc0tsMWZBZjVraENuWGhHOW0xOG84YlgxaXpxSUVnNkVEanVfT1YydFVWRkc4Vmh2U05LYzN1WXd1eTlCeXVtZWkxandGUzh5MWgtUDNRcWpDeUFJWmxhcFVpV3RnT2xDM1pKc3JoVWQ5ZGZPLUY4Vm1RUQ&q=https%3A%2F%2Fidleoutpost.link%2Fgame&v=W0qPLd3K_Co
+              - text: "💎 Dive into our Web Shop for huge discounts on your favorite items. But wait—there's more! Discover exclusive offers you won't find anywhere else:"
+              - link "https://idleoutpost.link/web_shop" [ref=e1125] [cursor=pointer]:
+                - /url: https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqbnZobEFxclg3VFlvRS1hZzRfbTM1NnhsLXo1QXxBQ3Jtc0tsQUQ4aXV2WXk4TXQ5VXJ6eGI5dWFaeUY2QWhPemFWbWdLVUdMYjRqc21Ed29LcFpoRVNRX1pLcmVFZk1PeDBhenh4LWVvSF9wVnl2ZmFST3RsZ3F2cnR4eVhHUl94N29aYlRwVlhsdnM4ZlQ1VmV5bw&q=https%3A%2F%2Fidleoutpost.link%2Fweb_shop&v=W0qPLd3K_Co
+              - text: Follow us on our Socials! Discord ► /
+              - 'link "Discord Channel Link: discord" [ref=e1128] [cursor=pointer]':
+                - /url: https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqa2VFcTVVakItUGI3VTdoTXl5TTJHblE2RVpBd3xBQ3Jtc0ttRDFZZlY3dUVUYWhXM190cFprNDAzRFNCRGhrWDVENFh2eVQ4Vk1GVGxPTXQtRmlPRFBVNksyQk54WkZ0cFBRck1ybjdhUk5kbG9majdEQmo1ZVg5U210WEQ1d2tWTmFkcm1QbkxoYjVKZVprakVkOA&q=https%3A%2F%2Fdiscord.gg%2F2jsb2x4WGa&v=W0qPLd3K_Co
+                - text: / discord
+              - text: Facebook ► /
+              - 'link "Facebook Channel Link: IdleOutpost" [ref=e1132] [cursor=pointer]':
+                - /url: https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqbWRSSER4cmt1WVNqX18tdmxvRUFGN21qWTcyd3xBQ3Jtc0tucktqWVdaQUhQdW1TM2gtRWxFYjN6Y25yZzk4LTc2azVnRVFkSHNGbTRaY1ZjNFVkc3R4R2g2UFc1UnJhbU5jWjMtYWpEdXNVODdvSTdlc2JzTmFDTUdsbi1jeDBMQzNsS1pDVWczWXJPVlJTX2hqdw&q=https%3A%2F%2Fwww.facebook.com%2FIdleOutpost%2F&v=W0qPLd3K_Co
+                - text: / idleoutpost
+              - text: X (formerly Twitter) ► /
+              - link "https://x.com/IdleOutpost" [ref=e1135] [cursor=pointer]:
+                - /url: https://www.youtube.com/redirect?event=video_description&redir_token=QUFFLUhqa2FId0JHNldqMVZuM3laV1hOdUd3SVJZeWNxZ3xBQ3Jtc0tsb2lfWmVKenBmOWZZeUM3TGZCSDc5REw5MWpwampweHBWNTB2dUQ4VkdFNkdheHNCaU9QNlJ1TkVTWk8takFFOWVmb3NUZnlheWtueVhTcnFBd0ZDNFBibVBoalAzQURrQ09iUDZJd2FNdzhhSjdUTQ&q=https%3A%2F%2Fx.com%2FIdleOutpost&v=W0qPLd3K_Co
+              - link "#idleoutpost" [ref=e1137] [cursor=pointer]:
+                - /url: /hashtag/idleoutpost
+              - link "#idleoutpostgame" [ref=e1139] [cursor=pointer]:
+                - /url: /hashtag/idleoutpostgame
+            - generic [ref=e1142]:
+              - generic [ref=e1144]:
+                - heading "Games" [level=3] [ref=e1147]
+                - group "Idle Outpost Zombie Apocalypse" [ref=e1152] [cursor=pointer]:
+                  - link "Idle Outpost Zombie Apocalypse" [ref=e1154]:
+                    - heading "Idle Outpost Zombie Apocalypse" [level=1] [ref=e1155]
+                - link "Gaming" [ref=e1157] [cursor=pointer]:
+                  - /url: /gaming
+                  - generic [ref=e1161]:
+                    - img
+                  - generic [ref=e1162]: Gaming
+              - generic [ref=e1166]:
+                - link "Idle Outpost 109K subscribers" [ref=e1167] [cursor=pointer]:
+                  - /url: /@IdleOutpost
+                  - generic [ref=e1169]:
+                    - heading "Idle Outpost" [level=3] [ref=e1170]
+                    - generic [ref=e1171]: 109K subscribers
+                - generic [ref=e1174]:
+                  - link "Videos" [ref=e1177] [cursor=pointer]:
+                    - /url: /channel/UCCSc18RZkU2-6Yr6X1vJ2tA/videos
+                    - generic [ref=e1181]:
+                      - img
+                    - generic [ref=e1182]: Videos
+                  - link "About" [ref=e1188] [cursor=pointer]:
+                    - /url: /channel/UCCSc18RZkU2-6Yr6X1vJ2tA/about
+                    - generic [ref=e1192]:
+                      - img
+                    - generic [ref=e1193]: About
+                  - link "Discord" [ref=e1199] [cursor=pointer]:
+                    - /url: https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=QUFFLUhqbmd4ZUFNOEtiZTJ1ZlQ3OHM3N0taNmJrRFRFd3xBQ3Jtc0tuOXpURWJMOE50TU4zZHlVZjlnWlNYTE9vT0MxNHB2UldhUy1uaGlIdlRXR3RMak9sZFkway1sVDV4bVItTjl5cmF5VUNuLWlLbTYzM0N3Mm8xTDczVVA1REhZRlZxZUgwTDQ5NlEweUhJT2pQSzdhSQ&q=https%3A%2F%2Fdiscord.gg%2FaKgEwTexXM
+                    - generic [ref=e1201]: Discord
+                  - link "Facebook" [ref=e1207] [cursor=pointer]:
+                    - /url: https://www.youtube.com/redirect?event=Watch_SD_EP&redir_token=QUFFLUhqbUJycXJ1bE0xWjhvOTZNVmRvUmhkOTVUd3BoQXxBQ3Jtc0tsd0U5ZmJHZ0NzNjN1Y2hTOXhuR2piS2ZudnI2cGxibmhCLXJYeHlueGNzclpmZDBQSUtRWkFaZ21mTUhfaUhVOUxyNnFGWDJWVGFjN3lVemhYTldSVE1JbWN4WXNuYnhhZC1wWGNMX1hVbklfWGJvOA&q=https%3A%2F%2Fwww.facebook.com%2FIdleOutpost
+                    - generic [ref=e1209]: Facebook
+                - generic [ref=e1216]:
+                  - link [ref=e1218] [cursor=pointer]:
+                    - /url: /watch?v=1otZ_zSoo9I&pp=0gcJCTAB7p79v9jh
+                  - link "🎁 FREE ITEMS EVERY DAY IDLE OUTPOST 👇 by Idle Outpost" [ref=e1220] [cursor=pointer]:
+                    - /url: /watch?v=1otZ_zSoo9I&pp=0gcJCTAB7p79v9jh
+                    - generic [ref=e1221]:
+                      - generic [ref=e1222]: 🎁 FREE ITEMS EVERY DAY IDLE OUTPOST 👇
+                      - generic [ref=e1223]: by Idle Outpost
+            - button "Show less" [ref=e1224] [cursor=pointer]
+      - text: •
+      - generic [ref=e276]:
+        - generic [ref=e278] [cursor=pointer]:
+          - link [ref=e279]:
+            - /url: /watch?v=Dr5zebXpO-M
+            - generic [ref=e285]:
+              - generic [ref=e288]:
+                - img
+              - generic [ref=e289]: LIVE
+          - generic [ref=e291]:
+            - generic [ref=e292]:
+              - heading "Storchennest Live Webcam in Bad Salzungen, Thüringen" [level=3] [ref=e293]:
+                - link "Storchennest Live Webcam in Bad Salzungen, Thüringen" [ref=e294]:
+                  - /url: /watch?v=Dr5zebXpO-M
+              - generic [ref=e296]:
+                - group [ref=e297]:
+                  - generic [ref=e298]: Stadtverwaltung Bad Salzungen
+                - group [ref=e299]:
+                  - generic [ref=e300]: 1.6K watching
+            - button "More actions" [ref=e303]:
+              - generic [ref=e307]:
+                - img
+        - generic [ref=e312] [cursor=pointer]:
+          - link [ref=e313]:
+            - /url: /watch?v=9UBRoFuAfpk
+            - generic [ref=e1229]: 4:24
+          - generic [ref=e322]:
+            - generic [ref=e323]:
+              - 'heading "Idle outpost event #idleoutpost #comment #sub4sub #subscribe #viralvideo 4 minutes, 24 seconds" [level=3] [ref=e324]':
+                - 'link "Idle outpost event #idleoutpost #comment #sub4sub #subscribe #viralvideo 4 minutes, 24 seconds" [ref=e325]':
+                  - /url: /watch?v=9UBRoFuAfpk
+                  - text: "Idle outpost event #idleoutpost #comment #sub4sub #subscribe #viralvideo"
+              - generic [ref=e327]:
+                - group [ref=e328]:
+                  - generic [ref=e329]: NoScope
+                - group [ref=e330]:
+                  - generic [ref=e331]: 1.3K views
+                  - generic [ref=e332]: •
+                  - generic [ref=e333]: 1 year ago
+            - button "More actions" [ref=e336]:
+              - generic [ref=e340]:
+                - img
+        - generic [ref=e345] [cursor=pointer]:
+          - link [ref=e346]:
+            - /url: /watch?v=rk9o3sWDJpk&pp=ugUEEgJlbg%3D%3D
+            - generic [ref=e353]: 14:44
+          - generic [ref=e355]:
+            - generic [ref=e356]:
+              - heading "Minecraft Memes 14 minutes, 44 seconds" [level=3] [ref=e357]:
+                - link "Minecraft Memes 14 minutes, 44 seconds" [ref=e358]:
+                  - /url: /watch?v=rk9o3sWDJpk&pp=ugUEEgJlbg%3D%3D
+                  - text: Minecraft Memes
+              - generic [ref=e360]:
+                - group [ref=e361]:
+                  - generic [ref=e362]:
+                    - text: VaazkL
+                    - img [ref=e365]:
+                      - generic [ref=e367]:
+                        - img
+                - group [ref=e368]:
+                  - generic [ref=e369]: 83K views
+                  - generic [ref=e370]: •
+                  - generic [ref=e371]: 1 day ago
+                - group [ref=e372]:
+                  - generic [ref=e376]: New
+            - button "More actions" [ref=e379]:
+              - generic [ref=e383]:
+                - img
+        - generic [ref=e388] [cursor=pointer]:
+          - link [ref=e389]:
+            - /url: /watch?v=MXwFU7n9HhM&pp=ugUHEgVlbi1VUw%3D%3D
+            - generic [ref=e396]: 14:17
+          - generic [ref=e398]:
+            - generic [ref=e399]:
+              - heading "The Unfair Advantages Of Your Eye Color 14 minutes, 17 seconds" [level=3] [ref=e400]:
+                - link "The Unfair Advantages Of Your Eye Color 14 minutes, 17 seconds" [ref=e401]:
+                  - /url: /watch?v=MXwFU7n9HhM&pp=ugUHEgVlbi1VUw%3D%3D
+                  - text: The Unfair Advantages Of Your Eye Color
+              - generic [ref=e403]:
+                - group [ref=e404]:
+                  - generic [ref=e405]: AlmondTheArtist
+                - group [ref=e406]:
+                  - generic [ref=e407]: 2.1M views
+                  - generic [ref=e408]: •
+                  - generic [ref=e409]: 2 weeks ago
+            - button "More actions" [ref=e412]:
+              - generic [ref=e416]:
+                - img
+        - generic [ref=e421] [cursor=pointer]:
+          - link [ref=e422]:
+            - /url: /watch?v=JBt2Um6kONE
+            - generic [ref=e429]: 23:42
+          - generic [ref=e431]:
+            - generic [ref=e432]:
+              - heading "I Made a 3D Horror Game In Scratch 23 minutes" [level=3] [ref=e433]:
+                - link "I Made a 3D Horror Game In Scratch 23 minutes" [ref=e434]:
+                  - /url: /watch?v=JBt2Um6kONE
+                  - text: I Made a 3D Horror Game In Scratch
+              - generic [ref=e436]:
+                - group [ref=e437]:
+                  - generic [ref=e438]: ZonxScratch
+                - group [ref=e439]:
+                  - generic [ref=e440]: 891K views
+                  - generic [ref=e441]: •
+                  - generic [ref=e442]: 1 month ago
+            - button "More actions" [ref=e445]:
+              - generic [ref=e449]:
+                - img
+        - generic [ref=e454] [cursor=pointer]:
+          - link [ref=e455]:
+            - /url: /watch?v=rbxYShsMp6c
+            - generic [ref=e462]: 11:29
+          - generic [ref=e464]:
+            - generic [ref=e465]:
+              - heading "Roblox finally told the truth 11 minutes, 29 seconds" [level=3] [ref=e466]:
+                - link "Roblox finally told the truth 11 minutes, 29 seconds" [ref=e467]:
+                  - /url: /watch?v=rbxYShsMp6c
+                  - text: Roblox finally told the truth
+              - generic [ref=e469]:
+                - group [ref=e470]:
+                  - generic [ref=e471]:
+                    - text: KreekCraft
+                    - img [ref=e474]:
+                      - generic [ref=e476]:
+                        - img
+                - group [ref=e477]:
+                  - generic [ref=e478]: 759K views
+                  - generic [ref=e479]: •
+                  - generic [ref=e480]: 3 days ago
+                - group [ref=e481]:
+                  - generic [ref=e485]: New
+            - button "More actions" [ref=e488]:
+              - generic [ref=e492]:
+                - img
+        - generic [ref=e497] [cursor=pointer]:
+          - link [ref=e498]:
+            - /url: /watch?v=ilUbCLjEkUE
+            - generic [ref=e505]: 2:02:01
+          - generic [ref=e507]:
+            - generic [ref=e508]:
+              - heading "2 Hours Loop Lone Samurai Ronin 4K Resolution Your Live Wallpaper For PC 2 hours, 2 minutes" [level=3] [ref=e509]:
+                - link "2 Hours Loop Lone Samurai Ronin 4K Resolution Your Live Wallpaper For PC 2 hours, 2 minutes" [ref=e510]:
+                  - /url: /watch?v=ilUbCLjEkUE
+                  - text: 2 Hours Loop Lone Samurai Ronin 4K Resolution Your Live Wallpaper For PC
+              - generic [ref=e512]:
+                - group [ref=e513]:
+                  - generic [ref=e514]: Your Live Wallpaper
+                - group [ref=e515]:
+                  - generic [ref=e516]: 361K views
+                  - generic [ref=e517]: •
+                  - generic [ref=e518]: 4 months ago
+            - button "More actions" [ref=e521]:
+              - generic [ref=e525]:
+                - img
+        - generic [ref=e530] [cursor=pointer]:
+          - link [ref=e531]:
+            - /url: /watch?v=c8QmBOK84K0
+            - generic [ref=e538]: 5:18
+          - generic [ref=e540]:
+            - generic [ref=e541]:
+              - heading "Idle Outpost F2P Guide – Earn Gems Fast from Zero! 5 minutes, 18 seconds" [level=3] [ref=e542]:
+                - link "Idle Outpost F2P Guide – Earn Gems Fast from Zero! 5 minutes, 18 seconds" [ref=e543]:
+                  - /url: /watch?v=c8QmBOK84K0
+                  - text: Idle Outpost F2P Guide – Earn Gems Fast from Zero!
+              - generic [ref=e545]:
+                - group [ref=e546]:
+                  - generic [ref=e547]: Idle Outpost
+                - group [ref=e548]:
+                  - generic [ref=e549]: 5.7K views
+                  - generic [ref=e550]: •
+                  - generic [ref=e551]: 11 months ago
+            - button "More actions" [ref=e554]:
+              - generic [ref=e558]:
+                - img
+        - generic [ref=e563] [cursor=pointer]:
+          - link [ref=e564]:
+            - /url: /watch?v=JcgPHuoT8fI
+            - generic [ref=e571]: 2:00:01
+          - generic [ref=e573]:
+            - generic [ref=e574]:
+              - heading "🎬 4K Screensaver – Purple and Blue Neon Liquid Textures (No Audio) 2 hours" [level=3] [ref=e575]:
+                - link "🎬 4K Screensaver – Purple and Blue Neon Liquid Textures (No Audio) 2 hours" [ref=e576]:
+                  - /url: /watch?v=JcgPHuoT8fI
+                  - text: 🎬 4K Screensaver – Purple and Blue Neon Liquid Textures (No Audio)
+              - generic [ref=e578]:
+                - group [ref=e579]:
+                  - generic [ref=e580]: Infinite Vision
+                - group [ref=e581]:
+                  - generic [ref=e582]: 53K views
+                  - generic [ref=e583]: •
+                  - generic [ref=e584]: 3 months ago
+            - button "More actions" [ref=e587]:
+              - generic [ref=e591]:
+                - img
+        - generic [ref=e596] [cursor=pointer]:
+          - link [ref=e597]:
+            - /url: /watch?v=9jk3SAZGnL8
+            - generic [ref=e604]: 22:20
+          - generic [ref=e606]:
+            - generic [ref=e607]:
+              - heading "Unlocking MAX Attack Speed (Brotato) 22 minutes" [level=3] [ref=e608]:
+                - link "Unlocking MAX Attack Speed (Brotato) 22 minutes" [ref=e609]:
+                  - /url: /watch?v=9jk3SAZGnL8
+                  - text: Unlocking MAX Attack Speed (Brotato)
+              - generic [ref=e611]:
+                - group [ref=e612]:
+                  - generic [ref=e613]:
+                    - text: SSundee
+                    - img [ref=e616]:
+                      - generic [ref=e618]:
+                        - img
+                - group [ref=e619]:
+                  - generic [ref=e620]: 7.4M views
+                  - generic [ref=e621]: •
+                  - generic [ref=e622]: 3 years ago
+            - button "More actions" [ref=e625]:
+              - generic [ref=e629]:
+                - img
+        - generic [ref=e634] [cursor=pointer]:
+          - link [ref=e635]:
+            - /url: /watch?v=WQKBjSphgGU
+            - generic [ref=e642]: 9:49
+          - generic [ref=e644]:
+            - generic [ref=e645]:
+              - heading "THE BEST SHORTS ! - FUNNY COMPILATION 😂 9 minutes, 49 seconds" [level=3] [ref=e646]:
+                - link "THE BEST SHORTS ! - FUNNY COMPILATION 😂 9 minutes, 49 seconds" [ref=e647]:
+                  - /url: /watch?v=WQKBjSphgGU
+                  - text: THE BEST SHORTS ! - FUNNY COMPILATION 😂
+              - generic [ref=e649]:
+                - group [ref=e650]:
+                  - generic [ref=e651]:
+                    - text: VITMI
+                    - img [ref=e654]:
+                      - generic [ref=e656]:
+                        - img
+                - group [ref=e657]:
+                  - generic [ref=e658]: 70K views
+                  - generic [ref=e659]: •
+                  - generic [ref=e660]: 2 days ago
+                - group [ref=e661]:
+                  - generic [ref=e665]: New
+            - button "More actions" [ref=e668]:
+              - generic [ref=e672]:
+                - img
+        - generic [ref=e677] [cursor=pointer]:
+          - link [ref=e678]:
+            - /url: /watch?v=t5muHIO3dKU&pp=ugUHEgVlbi1VUw%3D%3D
+            - generic [ref=e685]: 18:10
+          - generic [ref=e687]:
+            - generic [ref=e688]:
+              - heading "I Built a Virus for this Cocky Scammer 18 minutes" [level=3] [ref=e689]:
+                - link "I Built a Virus for this Cocky Scammer 18 minutes" [ref=e690]:
+                  - /url: /watch?v=t5muHIO3dKU&pp=ugUHEgVlbi1VUw%3D%3D
+                  - text: I Built a Virus for this Cocky Scammer
+              - generic [ref=e692]:
+                - group [ref=e693]:
+                  - generic [ref=e694]:
+                    - text: Scammer Payback
+                    - img [ref=e697]:
+                      - generic [ref=e699]:
+                        - img
+                - group [ref=e700]:
+                  - generic [ref=e701]: 7.6M views
+                  - generic [ref=e702]: •
+                  - generic [ref=e703]: 1 month ago
+            - button "More actions" [ref=e706]:
+              - generic [ref=e710]:
+                - img
+        - generic [ref=e715] [cursor=pointer]:
+          - link [ref=e716]:
+            - /url: /watch?v=y8KofLWrkeU&pp=ugUEEgJlbg%3D%3D
+            - generic [ref=e723]: 8:10
+          - generic [ref=e725]:
+            - generic [ref=e726]:
+              - heading "ChatGPT vs Gemini Make Roblox From Scratch 8 minutes, 10 seconds" [level=3] [ref=e727]:
+                - link "ChatGPT vs Gemini Make Roblox From Scratch 8 minutes, 10 seconds" [ref=e728]:
+                  - /url: /watch?v=y8KofLWrkeU&pp=ugUEEgJlbg%3D%3D
+                  - text: ChatGPT vs Gemini Make Roblox From Scratch
+              - generic [ref=e730]:
+                - group [ref=e731]:
+                  - generic [ref=e732]: Crazy Cat
+                - group [ref=e733]:
+                  - generic [ref=e734]: 3.1M views
+                  - generic [ref=e735]: •
+                  - generic [ref=e736]: 2 months ago
+            - button "More actions" [ref=e739]:
+              - generic [ref=e743]:
+                - img
+        - generic [ref=e748] [cursor=pointer]:
+          - link [ref=e749]:
+            - /url: /watch?v=EFmxPMdBqmU
+            - generic [ref=e756]: 9:27
+          - generic [ref=e758]:
+            - generic [ref=e759]:
+              - heading "Animation vs. Coding 9 minutes, 27 seconds" [level=3] [ref=e760]:
+                - link "Animation vs. Coding 9 minutes, 27 seconds" [ref=e761]:
+                  - /url: /watch?v=EFmxPMdBqmU
+                  - text: Animation vs. Coding
+              - generic [ref=e763]:
+                - group [ref=e764]:
+                  - generic [ref=e765]:
+                    - text: Alan Becker
+                    - img [ref=e768]:
+                      - generic [ref=e770]:
+                        - img
+                - group [ref=e771]:
+                  - generic [ref=e772]: 19M views
+                  - generic [ref=e773]: •
+                  - generic [ref=e774]: 1 year ago
+            - button "More actions" [ref=e777]:
+              - generic [ref=e781]:
+                - img
+        - generic [ref=e786] [cursor=pointer]:
+          - link [ref=e787]:
+            - /url: /watch?v=zRtGL0-5rg4&pp=ugUEEgJlbg%3D%3D
+            - generic [ref=e794]: 42:57
+          - generic [ref=e796]:
+            - generic [ref=e797]:
+              - heading "Last To Leave Grocery Store, Wins $250,000 42 minutes" [level=3] [ref=e798]:
+                - link "Last To Leave Grocery Store, Wins $250,000 42 minutes" [ref=e799]:
+                  - /url: /watch?v=zRtGL0-5rg4&pp=ugUEEgJlbg%3D%3D
+                  - text: Last To Leave Grocery Store, Wins $250,000
+              - generic [ref=e801]:
+                - group [ref=e802]:
+                  - generic [ref=e803]:
+                    - text: MrBeast
+                    - img [ref=e806]:
+                      - generic [ref=e808]:
+                        - img
+                - group [ref=e809]:
+                  - generic [ref=e810]: 84M views
+                  - generic [ref=e811]: •
+                  - generic [ref=e812]: 5 days ago
+                - group [ref=e813]:
+                  - generic [ref=e817]: New
+            - button "More actions" [ref=e820]:
+              - generic [ref=e824]:
+                - img
+        - generic [ref=e829] [cursor=pointer]:
+          - link [ref=e830]:
+            - /url: /watch?v=qpDsZAjAqyo
+            - generic [ref=e837]: 1:00:00
+          - generic [ref=e839]:
+            - generic [ref=e840]:
+              - heading "Vagabond Duels | Animated Wallpaper 1 hour" [level=3] [ref=e841]:
+                - link "Vagabond Duels | Animated Wallpaper 1 hour" [ref=e842]:
+                  - /url: /watch?v=qpDsZAjAqyo
+                  - text: Vagabond Duels | Animated Wallpaper
+              - generic [ref=e844]:
+                - group [ref=e845]:
+                  - generic [ref=e846]: z3n28_
+                - group [ref=e847]:
+                  - generic [ref=e848]: 251K views
+                  - generic [ref=e849]: •
+                  - generic [ref=e850]: 1 year ago
+            - button "More actions" [ref=e853]:
+              - generic [ref=e857]:
+                - img
+        - generic [ref=e862] [cursor=pointer]:
+          - link [ref=e863]:
+            - /url: /watch?v=ry9p2RO02mE
+            - generic [ref=e870]: 8:01
+          - generic [ref=e872]:
+            - generic [ref=e873]:
+              - heading "Clash of Clans Most Unbelievable Bases... 8 minutes, 1 second" [level=3] [ref=e874]:
+                - link "Clash of Clans Most Unbelievable Bases... 8 minutes, 1 second" [ref=e875]:
+                  - /url: /watch?v=ry9p2RO02mE
+                  - text: Clash of Clans Most Unbelievable Bases...
+              - generic [ref=e877]:
+                - group [ref=e878]:
+                  - generic [ref=e879]:
+                    - text: Hallow
+                    - img [ref=e882]:
+                      - generic [ref=e884]:
+                        - img
+                - group [ref=e885]:
+                  - generic [ref=e886]: 9.9M views
+                  - generic [ref=e887]: •
+                  - generic [ref=e888]: 3 years ago
+            - button "More actions" [ref=e891]:
+              - generic [ref=e895]:
+                - img
+        - generic [ref=e900] [cursor=pointer]:
+          - link [ref=e901]:
+            - /url: /watch?v=OfqDztckcBk&list=RDOfqDztckcBk&start_radio=1&pp=oAcB
+            - generic [ref=e907]:
+              - generic [ref=e910]:
+                - img
+              - generic [ref=e911]: 1:00:01
+          - generic [ref=e913]:
+            - generic [ref=e914]:
+              - heading "Ambient & Relaxing Dark Souls & Soulsborne Music 1 hour" [level=3] [ref=e915]:
+                - link "Ambient & Relaxing Dark Souls & Soulsborne Music 1 hour" [ref=e916]:
+                  - /url: /watch?v=OfqDztckcBk&list=RDOfqDztckcBk&start_radio=1&pp=oAcB
+                  - text: Ambient & Relaxing Dark Souls & Soulsborne Music
+              - generic [ref=e918]:
+                - group [ref=e919]:
+                  - generic [ref=e920]: Cry Café
+                - group [ref=e921]:
+                  - generic [ref=e922]: 213K views
+                  - generic [ref=e923]: •
+                  - generic [ref=e924]: 3 years ago
+            - button "More actions" [ref=e927]:
+              - generic [ref=e931]:
+                - img
+        - generic [ref=e936] [cursor=pointer]:
+          - link [ref=e937]:
+            - /url: /watch?v=3kGxHuYRZoE&pp=0gcJCdMKAYcqIYzv
+            - generic [ref=e944]: 2:00:00
+          - generic [ref=e946]:
+            - generic [ref=e947]:
+              - heading "2h Psychedelic Magical Night Neon Background | No Sound 4K 2 hours" [level=3] [ref=e948]:
+                - link "2h Psychedelic Magical Night Neon Background | No Sound 4K 2 hours" [ref=e949]:
+                  - /url: /watch?v=3kGxHuYRZoE&pp=0gcJCdMKAYcqIYzv
+                  - text: 2h Psychedelic Magical Night Neon Background | No Sound 4K
+              - generic [ref=e951]:
+                - group [ref=e952]:
+                  - generic [ref=e953]: 4K VISION BACKGROUND
+                - group [ref=e954]:
+                  - generic [ref=e955]: 639 views
+                  - generic [ref=e956]: •
+                  - generic [ref=e957]: 7 months ago
+            - button "More actions" [ref=e960]:
+              - generic [ref=e964]:
+                - img
+        - generic [ref=e969] [cursor=pointer]:
+          - link [ref=e970]:
+            - /url: /watch?v=z6HJFUuUC-A&list=RDz6HJFUuUC-A&start_radio=1&pp=oAcB
+            - generic [ref=e976]:
+              - generic [ref=e979]:
+                - img
+              - generic [ref=e980]: 1:08:45
+          - generic [ref=e982]:
+            - generic [ref=e983]:
+              - heading "SEEKING JESUS - Instrumental Worship Music For Prayer 1 hour, 8 minutes" [level=3] [ref=e984]:
+                - link "SEEKING JESUS - Instrumental Worship Music For Prayer 1 hour, 8 minutes" [ref=e985]:
+                  - /url: /watch?v=z6HJFUuUC-A&list=RDz6HJFUuUC-A&start_radio=1&pp=oAcB
+                  - text: SEEKING JESUS - Instrumental Worship Music For Prayer
+              - generic [ref=e987]:
+                - group [ref=e988]:
+                  - generic [ref=e989]: 1MOMENT
+                - group [ref=e990]:
+                  - generic [ref=e991]: 1.3M views
+                  - generic [ref=e992]: •
+                  - generic [ref=e993]: 10 months ago
+            - button "More actions" [ref=e996]:
+              - generic [ref=e1000]:
+                - img
+        - button "Show more" [ref=e1008] [cursor=pointer]:
+          - generic [ref=e1009]: Show more

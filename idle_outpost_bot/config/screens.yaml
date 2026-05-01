@@ -1,0 +1,99 @@
+screens:
+  main_screen:
+    detect_text: "거래"
+    detect_region: null
+    regions:
+      bottom_actions:
+        x: 130
+        y: 1772
+        w: 812
+        h: 236
+    buttons:
+      inbox: {x: 860, y: 135}
+      menu: {x: 1030, y: 131}
+      info: {x: 951, y: 135}
+      event_banner: {x: 548, y: 365}
+      calendar: {x: 75, y: 348}
+      wheel: {x: 75, y: 491}
+      tasks: {x: 75, y: 636}
+      quest_board: {x: 75, y: 780}
+      cards: {x: 75, y: 936}
+      ad_tv: {x: 77, y: 1242}
+      right_event: {x: 993, y: 316}
+      trophy: {x: 1005, y: 522}
+      pass: {x: 1004, y: 701}
+      enter_trade: {x: 316, y: 1890}
+      enter_fight: {x: 760, y: 1890}
+      nav_target: {x: 94, y: 2238}
+      nav_workshop: {x: 296, y: 2238}
+      nav_home: {x: 541, y: 2230}
+      nav_shield: {x: 788, y: 2238}
+      chat: {x: 44, y: 2054}
+
+  daily_reward_dialog:
+    detect_text: "Daily"
+    detect_region: null
+    regions: {}
+    buttons:
+      claim: {x: 540, y: 1500}
+      close: {x: 1000, y: 200}
+      x: {x: 1000, y: 200}
+
+  ad_reward_dialog:
+    detect_text: "Watch"
+    detect_region: null
+    regions: {}
+    buttons:
+      watch: {x: 540, y: 1500}
+      close: {x: 1000, y: 200}
+      later: {x: 540, y: 1700}
+
+  tasks_screen:
+    detect_text: "Tasks"
+    detect_region: null
+    regions: {}
+    buttons:
+      claim_all: {x: 540, y: 1900}
+      close: {x: 1000, y: 200}
+
+  upgrade_panel:
+    detect_text: "Upgrade"
+    detect_region: null
+    regions: {}
+    buttons: {}
+
+  prestige_dialog:
+    detect_text: "Switch Server"
+    detect_region: null
+    regions: {}
+    buttons:
+      cancel: {x: 350, y: 1500}
+
+  event_screen:
+    detect_text: "Cornfield"
+    detect_region: null
+    regions: {}
+    buttons:
+      claim: {x: 540, y: 1900}
+      close: {x: 1000, y: 200}
+
+  connection_lost:
+    detect_text: "internet"
+    detect_region: null
+    regions: {}
+    buttons:
+      retry: {x: 540, y: 1500}
+
+  update_required:
+    detect_text: "Update"
+    detect_region: null
+    regions: {}
+    buttons:
+      later: {x: 350, y: 1500}
+
+  fight_mode:
+    detect_text: "전투"
+    detect_region: null
+    regions: {}
+    buttons:
+      loot: {x: 540, y: 1900}

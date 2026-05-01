@@ -1,0 +1,51 @@
+ocr_hits:
+- confidence: 0.742
+  text: :=
+- confidence: 0.999
+  text: '13'
+- confidence: 1.0
+  text: '74'
+- confidence: 0.117
+  text: 년
+- confidence: 0.933
+  text: 행운의 바퀴
+- confidence: 0.485
+  text: 명
+- confidence: 1.0
+  text: '30'
+- confidence: 0.896
+  text: '15'
+- confidence: 1.0
+  text: '100'
+- confidence: 0.0
+  text: ''
+- confidence: 0.0
+  text: ''
+- confidence: 0.538
+  text: O
+- confidence: 0.155
+  text: −
+- confidence: 0.144
+  text: 와
+- confidence: 0.372
+  text: ST
+- confidence: 0.598
+  text: T
+- confidence: 0.432
+  text: '9'
+- confidence: 0.613
+  text: D
+- confidence: 1.0
+  text: 애니메이션
+- confidence: 1.0
+  text: 건너뛰기
+- confidence: 0.0
+  text: ''
+- confidence: 0.991
+  text: 돌리기
+- confidence: 0.987
+  text: (3/3)
+screen_size:
+  height: 2340
+  width: 1080
+screenshot: wheel.png

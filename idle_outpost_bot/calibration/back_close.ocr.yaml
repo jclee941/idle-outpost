@@ -1,0 +1,65 @@
+ocr_hits:
+- confidence: 0.999
+  text: '10:58'
+- confidence: 0.475
+  text: X
+- confidence: 0.999
+  text: '83'
+- confidence: 0.202
+  text: ↑
+- confidence: 1.0
+  text: 검색된
+- confidence: 1.0
+  text: 앱
+- confidence: 0.0
+  text: ''
+- confidence: 0.927
+  text: IdleOutpost
+- confidence: 0.999
+  text: Find
+- confidence: 0.974
+  text: Windows와 연결
+- confidence: 0.961
+  text: Dri
+- confidence: 0.999
+  text: ve
+- confidence: 0.952
+  text: Appium Setti.
+- confidence: 0.999
+  text: Gemini
+- confidence: 0.999
+  text: Gmail
+- confidence: 1.0
+  text: OneDrive
+- confidence: 0.999
+  text: IMEI(SIM카드)
+- confidence: 0.892
+  text: IM티I (사용 가능)
+- confidence: 1.0
+  text: 설정
+- confidence: 0.984
+  text: 인기 설정
+- confidence: 0.999
+  text: Wi-Fi
+- confidence: 1.0
+  text: 연결
+- confidence: 1.0
+  text: SIM관리자
+- confidence: 1.0
+  text: 연결
+- confidence: 0.989
+  text: 모션 및 제스처
+- confidence: 0.999
+  text: 유용한 기능
+- confidence: 0.996
+  text: ×
+- confidence: 0.426
+  text: '|'
+- confidence: 0.812
+  text: '|||'
+- confidence: 0.19
+  text: I
+screen_size:
+  height: 2340
+  width: 1080
+screenshot: back_close.png

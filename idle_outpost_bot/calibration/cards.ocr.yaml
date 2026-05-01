@@ -1,0 +1,63 @@
+ocr_hits:
+- confidence: 0.762
+  text: :=
+- confidence: 0.999
+  text: '13'
+- confidence: 1.0
+  text: '74'
+- confidence: 0.994
+  text: 노획 카드
+- confidence: 1.0
+  text: 15일
+- confidence: 0.932
+  text: 노획 속도
+- confidence: 0.97
+  text: X2
+- confidence: 1.0
+  text: 가치
+- confidence: 1.0
+  text: 950%
+- confidence: 0.942
+  text: 자동 노획 수량
+- confidence: 0.987
+  text: X2
+- confidence: 0.971
+  text: 즉석 보상
+- confidence: 0.0
+  text: ''
+- confidence: 0.916
+  text: x500
+- confidence: 0.97
+  text: x15k
+- confidence: 0.985
+  text: 일일 보상
+- confidence: 0.986
+  text: 비활성화
+- confidence: 0.952
+  text: $14.99
+- confidence: 0.918
+  text: X600
+- confidence: 0.987
+  text: x5k
+- confidence: 0.997
+  text: 광고 이용권 카드
+- confidence: 1.0
+  text: 14일
+- confidence: 0.97
+  text: 즉석 보상
+- confidence: 0.925
+  text: x100
+- confidence: 0.88
+  text: x150
+- confidence: 0.254
+  text: '2222522'
+- confidence: 0.998
+  text: 일일 보상
+- confidence: 1.0
+  text: 비활성화
+- confidence: 0.0
+  text: ''
+screen_size:
+  height: 2340
+  width: 1080
+screenshot: cards.png

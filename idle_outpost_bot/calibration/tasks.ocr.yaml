@@ -1,0 +1,105 @@
+ocr_hits:
+- confidence: 0.991
+  text: sexsexbo
+- confidence: 1.0
+  text: '4'
+- confidence: 0.998
+  text: 28.6m
+- confidence: 1.0
+  text: 임무
+- confidence: 0.999
+  text: 주간
+- confidence: 0.999
+  text: '230'
+- confidence: 0.877
+  text: X120
+- confidence: 0.953
+  text: X2
+- confidence: 0.784
+  text: X3
+- confidence: 1.0
+  text: '140'
+- confidence: 0.999
+  text: '280'
+- confidence: 1.0
+  text: '420'
+- confidence: 0.999
+  text: '560'
+- confidence: 1.0
+  text: '700'
+- confidence: 1.0
+  text: 일일
+- confidence: 0.999
+  text: '10'
+- confidence: 0.867
+  text: x50
+- confidence: 0.846
+  text: X2
+- confidence: 0.798
+  text: x1
+- confidence: 0.842
+  text: x50
+- confidence: 0.798
+  text: X2
+- confidence: 0.999
+  text: '20'
+- confidence: 1.0
+  text: '40'
+- confidence: 0.999
+  text: '60'
+- confidence: 0.999
+  text: '80'
+- confidence: 1.0
+  text: '100'
+- confidence: 0.937
+  text: 일일 임무
+- confidence: 0.999
+  text: 초기화까지:16h58m
+- confidence: 0.964
+  text: 애완동물 달리기 3회 플레이
+- confidence: 0.999
+  text: '+10'
+- confidence: 1.0
+  text: 이동
+- confidence: 0.996
+  text: 0/3
+- confidence: 0.994
+  text: 30전술 장비 뽑기
+- confidence: 1.0
+  text: 이동
+- confidence: 0.999
+  text: '+10'
+- confidence: 0.999
+  text: 0/30
+- confidence: 0.963
+  text: 애완동물 30마리 뽑기
+- confidence: 0.999
+  text: '+10'
+- confidence: 1.0
+  text: 이동
+- confidence: 0.999
+  text: 0/30
+- confidence: 0.994
+  text: 애완동물 달리기 6회 플레이
+- confidence: 1.0
+  text: 이동
+- confidence: 0.999
+  text: '+10'
+- confidence: 0.999
+  text: 0/6
+- confidence: 0.969
+  text: 끝없는 무덤 3회 플레이
+- confidence: 1.0
+  text: 이동
+- confidence: 0.999
+  text: '+10'
+- confidence: 0.994
+  text: 0/3
+- confidence: 0.989
+  text: 120회 노획
+- confidence: 0.985
+  text: 이도
+screen_size:
+  height: 2340
+  width: 1080
+screenshot: tasks.png

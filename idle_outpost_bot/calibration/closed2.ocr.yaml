@@ -1,0 +1,47 @@
+ocr_hits:
+- confidence: 0.458
+  text: :=
+- confidence: 0.186
+  text: 월
+- confidence: 1.0
+  text: '13'
+- confidence: 1.0
+  text: '74'
+- confidence: 1.0
+  text: 계정
+- confidence: 0.918
+  text: 행운의 바퀴
+- confidence: 0.984
+  text: 메일 수신함
+- confidence: 1.0
+  text: 설정
+- confidence: 1.0
+  text: 지원
+- confidence: 0.999
+  text: '30'
+- confidence: 1.0
+  text: '15'
+- confidence: 0.999
+  text: '100'
+- confidence: 0.698
+  text: ㅇ
+- confidence: 0.929
+  text: ×
+- confidence: 0.189
+  text: '8'
+- confidence: 0.927
+  text: ST
+- confidence: 0.166
+  text: ¶
+- confidence: 0.0
+  text: ''
+- confidence: 1.0
+  text: 애니메이션
+- confidence: 1.0
+  text: 건너뛰기
+- confidence: 0.906
+  text: 돌리기
+screen_size:
+  height: 2340
+  width: 1080
+screenshot: closed2.png

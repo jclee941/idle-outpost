@@ -1,0 +1,57 @@
+ocr_hits:
+- confidence: 0.844
+  text: ':'
+- confidence: 0.995
+  text: sexsexbo
+- confidence: 1.0
+  text: '74'
+- confidence: 0.997
+  text: 28.6m
+- confidence: 0.972
+  text: Cornfield Dream
+- confidence: 0.999
+  text: Win Exclusive Set!
+- confidence: 0.969
+  text: 55m 9s
+- confidence: 0.997
+  text: 2/6 items collected
+- confidence: 0.974
+  text: +412% P0WER
+- confidence: 0.94
+  text: 12h 58m
+- confidence: 0.982
+  text: 56m 9s
+- confidence: 0.99
+  text: Profit
+- confidence: 1.0
+  text: '#24'
+- confidence: 0.995
+  text: +2.23k%
+- confidence: 0.991
+  text: SURF
+- confidence: 0.788
+  text: SHOT
+- confidence: 0.996
+  text: 12h 59m
+- confidence: 0.997
+  text: 2d 12h
+- confidence: 0.994
+  text: 1d 23h
+- confidence: 1.0
+  text: 거래
+- confidence: 0.986
+  text: 전투
+- confidence: 0.957
+  text: 해변가 6-3
+- confidence: 0.977
+  text: 겨울 숲 5-2~10
+- confidence: 0.97
+  text: 'apill:'
+- confidence: 0.401
+  text: F
+- confidence: 0.997
+  text: 'nab:'
+screen_size:
+  height: 2340
+  width: 1080
+screenshot: game_ready.png

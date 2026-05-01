@@ -1,0 +1,37 @@
+ocr_hits:
+- confidence: 0.978
+  text: 소버넌트 세트
+- confidence: 0.966
+  text: Get Exclusive Set!
+- confidence: 0.973
+  text: +412% POWER
+- confidence: 0.984
+  text: 'Next chance: 4 Months Away'
+- confidence: 0.997
+  text: 13h 4m left
+- confidence: 0.978
+  text: Event rewards
+- confidence: 0.586
+  text: X1O
+- confidence: 0.957
+  text: Cornfield Dream
+- confidence: 0.888
+  text: 소의 꿈
+- confidence: 0.97
+  text: '종료: 1h 44s'
+- confidence: 0.914
+  text: 퀴스트 러시
+- confidence: 0.913
+  text: '종료: 1h 1m'
+- confidence: 0.847
+  text: X0
+- confidence: 0.935
+  text: 소방울 러시
+- confidence: 0.919
+  text: '종료: 1h 1m'
+- confidence: 0.928
+  text: 옥수수밭 꿈
+screen_size:
+  height: 2340
+  width: 1080
+screenshot: calendar.png
