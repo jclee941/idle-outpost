@@ -181,6 +181,8 @@ def main() -> int:
             return handle_list()
         if command == "scrape":
             return handle_scrape()
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except Exception as exc:  # pragma: no cover - CLI safety net
         logging.exception("command failed: %s", exc)
         return 1

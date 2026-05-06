@@ -1,0 +1,59 @@
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+
+# Local state / data
+*.bin
+*.mitm
+flows*.bin
+
+# Screenshots / captures
+screenshots/
+*.png
+
+# macOS
+.DS_Store
+
+# Playwright MCP artifacts
+.playwright-mcp/
+
+# Kratos / Sisyphus
+.sisyphus/

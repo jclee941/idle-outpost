@@ -176,6 +176,8 @@ def main() -> int:
             return _handle_once(settings)
         if command == "run":
             return _handle_run(settings)
+    except (KeyboardInterrupt, SystemExit):
+        raise
     except Exception as exc:  # noqa: BLE001
         logging.exception("command failed: %s", exc)
         return 1
