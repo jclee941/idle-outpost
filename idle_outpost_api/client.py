@@ -31,7 +31,7 @@ class ApiClient:
         return headers
 
     def _client(self) -> httpx.Client:
-        return httpx.Client(timeout=self.timeout, follow_redirects=True)
+        return httpx.Client(timeout=self.timeout, follow_redirects=False)
 
     def request(
         self,
@@ -43,7 +43,7 @@ class ApiClient:
         extra_headers: dict[str, str] | None = None,
     ) -> httpx.Response:
         with self._client() as client:
-            LOGGER.debug("%s %s body=%s", method, url, json)
+            LOGGER.debug("%s %s", method, url)
             resp = client.request(
                 method,
                 url,

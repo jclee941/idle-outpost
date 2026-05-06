@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
@@ -30,6 +31,15 @@ def _summarize_keys(obj: Any, prefix: str = "") -> set[str]:
     return keys
 
 
+def _redact(text: str) -> str:
+    """Remove Authorization headers and token-like values from text."""
+    if not text:
+        return text
+    redacted = re.sub(r'Bearer\s+[A-Za-z0-9_-]+', 'Bearer <REDACTED>', text)
+    redacted = re.sub(r'"token"\s*:\s*"[^"]+"', '"token": "<REDACTED>"', redacted)
+    return redacted
+
+
 def analyze(flows_path: Path) -> dict[str, Any]:
     from mitmproxy.io import FlowReader
 
@@ -38,7 +48,6 @@ def analyze(flows_path: Path) -> dict[str, Any]:
                  "auth_header_seen": False, "request_keys": set(), "response_keys": set(),
                  "sample_request": None, "sample_response": None}
     )
-    bearer_tokens: list[str] = []
 
     with flows_path.open("rb") as fh:
         reader = FlowReader(fh)
@@ -60,29 +69,27 @@ def analyze(flows_path: Path) -> dict[str, Any]:
             auth = req.headers.get("Authorization", "") if req.headers else ""
             if auth.startswith("Bearer "):
                 entry["auth_header_seen"] = True
-                token = auth[len("Bearer "):]
-                if token not in bearer_tokens:
-                    bearer_tokens.append(token)
 
             req_text = req.get_text() or ""
             req_json = _safe_json(req_text)
             if req_json is not None:
                 entry["request_keys"] |= _summarize_keys(req_json)
-                if entry["sample_request"] is None:
-                    entry["sample_request"] = req_text[:500]
+            if entry["sample_request"] is None:
+                entry["sample_request"] = _redact(req_text)[:500]
 
             if resp is not None:
                 resp_text = resp.get_text() or ""
                 resp_json = _safe_json(resp_text)
                 if resp_json is not None:
                     entry["response_keys"] |= _summarize_keys(resp_json)
-                    if entry["sample_response"] is None:
-                        entry["sample_response"] = resp_text[:500]
+                if entry["sample_response"] is None:
+                    entry["sample_response"] = _redact(resp_text)[:500]
 
     out = {
         "total_endpoints": len(by_endpoint),
-        "bearer_tokens_seen": len(bearer_tokens),
-        "first_token_prefix": bearer_tokens[0][:30] + "..." if bearer_tokens else None,
+        "auth_required_count": sum(
+            1 for d in by_endpoint.values() if d["auth_header_seen"]
+        ),
         "endpoints": {},
     }
     for ep, data in sorted(by_endpoint.items(), key=lambda kv: -kv[1]["count"]):
