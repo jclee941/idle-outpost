@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TypedDict
@@ -133,7 +134,25 @@ def _load_store() -> StorePayload:
 
 def _write_store(payload: StorePayload) -> None:
     STORE_DIR.mkdir(parents=True, exist_ok=True)
-    _ = STORE_PATH.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    text = json.dumps(payload, indent=2, ensure_ascii=False)
+    _atomic_write(STORE_PATH, text)
+
+
+def _atomic_write(path: Path, text: str) -> None:
+    """Write text atomically with restrictive permissions (0o600)."""
+    import tempfile
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def _isoformat(value: datetime) -> str:

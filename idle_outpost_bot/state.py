@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 LOGGER = logging.getLogger(__name__)
 
@@ -63,7 +65,25 @@ def load_state(path: Path) -> BotState:
 def save_state(path: Path, state: BotState) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = _state_to_dict(state)
-    _ = path.write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+    text = json.dumps(payload, indent=2, ensure_ascii=False)
+    _atomic_write(path, text)
+
+
+def _atomic_write(path: Path, text: str) -> None:
+    """Write text atomically with restrictive permissions (0o600)."""
+    import tempfile
+    fd, tmp = tempfile.mkstemp(dir=path.parent, prefix=f".{path.name}.")
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(text)
+        os.chmod(tmp, 0o600)
+        os.replace(tmp, path)
+    except Exception:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def now_utc_iso() -> str:
