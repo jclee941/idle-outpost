@@ -8,7 +8,7 @@ from urllib.parse import urlparse
 
 import httpx
 
-from auth import STORE_API_BASE, TIMEOUT_SECONDS, auth_headers, get_user_ids, login
+from auth import TIMEOUT_SECONDS, auth_headers, get_store_api_base, get_user_ids, login
 from scraper import Code
 
 LOGGER = logging.getLogger(__name__)
@@ -18,6 +18,12 @@ ALLOWED_REDEEM_HOSTS = {"store.xsolla.com"}
 @dataclass(slots=True)
 class RedeemAttempt:
     code_text: str
+    redeemed: bool
+    message: str
+
+
+@dataclass(slots=True)
+class _UserRedeemResult:
     redeemed: bool
     message: str
 
@@ -54,12 +60,6 @@ def attempt_redeem(code: Code) -> RedeemAttempt:
     return RedeemAttempt(code_text=code.code_text, redeemed=False, message=message)
 
 
-@dataclass(slots=True)
-class _UserRedeemResult:
-    redeemed: bool
-    message: str
-
-
 def _redeem_for_user(
     client: httpx.Client,
     token: str,
@@ -92,7 +92,7 @@ def _redeem_for_user(
 
 def _get_cart_id(client: httpx.Client, headers: dict[str, str]) -> str:
     """Fetch the current cart ID for authenticated user."""
-    url = f"{STORE_API_BASE}/cart"
+    url = f"{get_store_api_base()}/cart"
     try:
         resp = client.get(url, headers=headers)
         resp.raise_for_status()
@@ -112,7 +112,7 @@ def _try_promocode(
     label: str,
 ) -> _UserRedeemResult:
     """POST promocode/redeem with cart (primary endpoint)."""
-    url = f"{STORE_API_BASE}/promocode/redeem"
+    url = f"{get_store_api_base()}/promocode/redeem"
     if not _is_allowed_url(url):
         return _UserRedeemResult(False, f"[{label}] promocode: blocked URL")
 
@@ -127,7 +127,7 @@ def _try_coupon(
     label: str,
 ) -> _UserRedeemResult:
     """POST coupon/redeem (fallback endpoint)."""
-    url = f"{STORE_API_BASE}/coupon/redeem"
+    url = f"{get_store_api_base()}/coupon/redeem"
     if not _is_allowed_url(url):
         return _UserRedeemResult(False, f"[{label}] coupon: blocked URL")
 
@@ -205,7 +205,12 @@ def _looks_like_success(response_json: object, body_preview: str) -> bool:
 
 
 def _is_allowed_url(url: str) -> bool:
-    return urlparse(url).netloc in ALLOWED_REDEEM_HOSTS
+    parsed = urlparse(url)
+    return (
+        parsed.scheme == "https"
+        and parsed.hostname is not None
+        and parsed.hostname.lower().rstrip(".") in ALLOWED_REDEEM_HOSTS
+    )
 
 
 def _compact_text(value: str, limit: int = 160) -> str:

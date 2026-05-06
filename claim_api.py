@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Idle Outpost 웹샵 데일리 무료 보너스 — 순수 HTTP API (브라우저 불필요)"""
+"""Idle Outpost 웹샵 데일리 무로 본어스 — 순수 HTTP API (브라우저 불필요)"""
 
 from __future__ import annotations
 
@@ -15,7 +15,7 @@ from zoneinfo import ZoneInfo
 import httpx
 from dotenv import load_dotenv
 
-from auth import STORE_API_BASE, TIMEOUT_SECONDS, auth_headers, get_user_ids, login
+from auth import TIMEOUT_SECONDS, auth_headers, get_store_api_base, get_user_ids, login
 
 KST = ZoneInfo("Asia/Seoul")
 LOG = logging.getLogger("claim_api")
@@ -31,7 +31,7 @@ class ClaimResult:
 
 def get_giveaway_items(client: httpx.Client, token: str) -> list[dict[str, object]]:
     resp = client.get(
-        f"{STORE_API_BASE}/items/virtual_items/group",
+        f"{get_store_api_base()}/items/virtual_items/group",
         params={"external_id[]": "giveaway", "locale": "en", "limit": "50"},
         headers=auth_headers(token),
     )
@@ -43,7 +43,7 @@ def get_giveaway_items(client: httpx.Client, token: str) -> list[dict[str, objec
 
 def claim_item(client: httpx.Client, token: str, sku: str) -> int:
     resp = client.post(
-        f"{STORE_API_BASE}/free/item/{sku}",
+        f"{get_store_api_base()}/free/item/{sku}",
         headers=auth_headers(token),
     )
     return resp.status_code
@@ -92,13 +92,13 @@ def format_message(user_results: dict[str, list[ClaimResult]]) -> str:
         lines = [f"{icons.get(r.status, '•')} {r.name} — {r.detail}" for r in results]
         sections.append(f"👤 {label}\n" + "\n".join(lines))
     ts = datetime.now(tz=KST).strftime("%Y-%m-%d %H:%M KST")
-    return "🎁 Idle Outpost 데일리 보너스\n\n" + "\n\n".join(sections) + f"\n\n📅 {ts}"
+    return "🎁 Idle Outpost 데일리 본어스\n\n" + "\n\n".join(sections) + f"\n\n📅 {ts}"
 
 
 def notify_slack(message: str) -> None:
     webhook = os.getenv("IDLE_OUTPOST_SLACK_WEBHOOK", "").strip()
     if not webhook:
-        print(message)
+        LOG.info("slack webhook not configured; message suppressed")
         return
     try:
         resp = httpx.post(webhook, json={"text": message}, timeout=10.0)
@@ -107,7 +107,7 @@ def notify_slack(message: str) -> None:
     except httpx.HTTPError as exc:
         webhook_host = urlparse(webhook).netloc or "unknown-host"
         LOG.warning("slack failed (host=%s): %s", webhook_host, exc)
-        print(message)
+        LOG.info("slack message suppressed due to delivery failure")
 
 
 def run_claim(json_mode: bool = False) -> int:
