@@ -19,7 +19,7 @@ def notify_new_codes(codes: list[Code]) -> None:
     message = _build_message(codes)
     webhook_url = os.getenv("IDLE_OUTPOST_SLACK_WEBHOOK", "").strip()
     if not webhook_url:
-        print(message)
+        LOGGER.info("slack webhook not configured; notification suppressed")
         return
 
     try:
@@ -33,7 +33,7 @@ def notify_new_codes(codes: list[Code]) -> None:
             webhook_host,
             exc.__class__.__name__,
         )
-        print(message)
+        LOGGER.info("slack notification suppressed due to delivery failure")
 
 
 def _build_message(codes: list[Code]) -> str:

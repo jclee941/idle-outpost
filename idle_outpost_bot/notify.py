@@ -13,7 +13,7 @@ TIMEOUT_SECONDS = 10.0
 def post_slack(message: str) -> None:
     webhook_url = os.getenv("IDLE_OUTPOST_SLACK_WEBHOOK", "").strip()
     if not webhook_url:
-        print(message)
+        LOGGER.info("slack webhook not configured; notification suppressed")
         return
     try:
         with httpx.Client(timeout=TIMEOUT_SECONDS) as client:
@@ -22,7 +22,7 @@ def post_slack(message: str) -> None:
     except httpx.HTTPError as exc:
         host = urlparse(webhook_url).netloc or "unknown-host"
         LOGGER.warning("slack send failed host=%s error=%s", host, exc.__class__.__name__)
-        print(message)
+        LOGGER.info("slack notification suppressed due to delivery failure")
 
 
 def notify_event(title: str, lines: list[str]) -> None:
