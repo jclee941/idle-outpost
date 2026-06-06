@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "idle-outpost-claim",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-06-01",
+  "observability": {
+    "enabled": true
+  },
+  // Daily at 00:10 KST (15:10 UTC). Adjust as desired.
+  "triggers": {
+    "crons": ["10 15 * * *"]
+  },
+  // Non-secret config. Secrets (USER_IDS, LOGIN_ID, SLACK_WEBHOOK) are set via
+  // `wrangler secret put` — see README.
+  "vars": {
+    "IDLE_OUTPOST_XSOLLA_PROJECT_ID": "256000",
+    "IDLE_OUTPOST_XSOLLA_MERCHANT_ID": "329415",
+    "IDLE_OUTPOST_XSOLLA_WEBHOOK_URL": "https://vd.appquantum.tech/webhook/user_validation"
+  }
+}

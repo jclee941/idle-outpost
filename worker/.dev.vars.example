@@ -1,0 +1,4 @@
+# Local dev secrets for `wrangler dev`. Copy to `.dev.vars` (gitignored).
+IDLE_OUTPOST_USER_IDS=uid1,uid2
+IDLE_OUTPOST_XSOLLA_LOGIN_ID=048e3522-75bd-43f5-95da-6ec145b9723a
+IDLE_OUTPOST_SLACK_WEBHOOK=
