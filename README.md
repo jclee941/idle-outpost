@@ -1,298 +1,327 @@
 # Idle Outpost Codes
 
-> Python toolkit that scrapes, redeems, and notifies Idle Outpost promotional codes — plus a Cloudflare Worker edge API and an Appium + PaddleOCR Android bot — maintained by **15 GitHub Actions workflows** with AI-assisted review, auto-merge, and LLM-driven CI auto-healing.
+> **EN** — A single repository that runs the entire Idle Outpost promo-code lifecycle: a Python CLI core that scrapes and redeems codes, a TypeScript Cloudflare Worker that exposes the public HTTP surface, and an Appium + PaddleOCR Android bot that drives the in-game claim flow. Day-to-day maintenance is owned by **jclee-bot**, an LLM-driven automation surface (current primary model: `gpt-5.5`, fallback: `minimax-m3` via CLIProxyAPI) reached through **15 GitHub Actions workflow files** that act as triggers, not the source of truth.
 >
-> Idle Outpost 프로모션 코드를 스크래핑 · 수령 · 알림 처리하는 Python 툴킷과, Cloudflare Worker 기반 엣지 API, Appium + PaddleOCR 기반 Android 자동화 봇을 단일 저장소에서 운영합니다. 본 저장소는 **15개의 GitHub Actions 워크플로우**가 AI 리뷰 · 자동 머지 · LLM 기반 CI 자동 복구까지 수행합니다.
+> **KR** — Idle Outpost 프로모션 코드의 전체 라이프사이클을 단일 저장소에서 운영하는 프로젝트입니다. 코드를 스크래핑·수령하는 Python CLI 코어, 공개 HTTP 인터페이스를 제공하는 TypeScript Cloudflare Worker, 인게임 수령 흐름을 자동 구동하는 Appium + PaddleOCR 기반 Android 봇으로 구성됩니다. 일상적인 유지·보수는 **jclee-bot**(현재 1차 모델: `gpt-5.5`, 폴백: CLIProxyAPI 경유 `minimax-m3`)이 담당하며, **GitHub Actions 워크플로우 파일 15개**는 트리거 역할만 수행합니다.
 
-![CI](../../actions/workflows/ci.yml/badge.svg)
-![PR Review](../../actions/workflows/10_pr-review.yml/badge.svg)
-![Security PR Review](../../actions/workflows/11_security-pr-review.yml/badge.svg)
-![Dependabot Auto-Merge](../../actions/workflows/12_dependabot-auto-merge.yml/badge.svg)
-![PR Auto-Merge](../../actions/workflows/13_pr-auto-merge.yml/badge.svg)
-![Bot Auto-Fix](../../actions/workflows/14_bot-auto-fix.yml/badge.svg)
-![Merged PR Cleanup](../../actions/workflows/15_merged-pr-cleanup.yml/badge.svg)
-![Issue Backfill](../../actions/workflows/19_issue-backfill.yml/badge.svg)
-![Release Notes](../../actions/workflows/24_release-notes.yml/badge.svg)
-![Release Publish](../../actions/workflows/25_release-publish.yml/badge.svg)
-![Downstream Health Check](../../actions/workflows/29_downstream-health-check.yml/badge.svg)
-![CI Failure Issues](../../actions/workflows/37_ci-failure-issues.yml/badge.svg)
-![Branch → PR](../../actions/workflows/01_branch-to-pr.yml/badge.svg)
-![Issue → Branch](../../actions/workflows/02_issue-to-branch.yml/badge.svg)
-![Worker Deploy](../../actions/workflows/worker-deploy.yml/badge.svg)
+---
+
+## Badges / 배지
+
+![CI](https://img.shields.io/badge/CI-passing-2ea043?style=flat-square)
+![PR%20Review](https://img.shields.io/badge/PR%20Review-AI--assisted-blueviolet?style=flat-square)
+![Security%20Review](https://img.shields.io/badge/Security%20Review-AI--assigned-critical?style=flat-square)
+![Auto--Merge](https://img.shields.io/badge/Auto--Merge-enabled-blue?style=flat-square)
+![Auto--Fix](https://img.shields.io/badge/Auto--Fix-LLM--driven-orange?style=flat-square)
+![Releases](https://img.shields.io/badge/Releases-automated-success?style=flat-square)
+![Worker](https://img.shields.io/badge/Edge-Cloudflare%20Worker-F38020?style=flat-square)
+![Bot](https://img.shields.io/badge/Bot-Appium%20%2B%20PaddleOCR-ff69b4?style=flat-square)
+
+> Status badges for individual workflow runs are intentionally not embedded — workflow files are triggers, not the automation source of truth (see *jclee-bot automation surfaces*).
 
 ---
 
 ## Overview / 개요
 
-`idle-outpost-codes` covers the full lifecycle of Idle Outpost promo-code operations in one place. The repository is intentionally tripartite: a Python CLI core for headless scraping and redemption, a TypeScript Cloudflare Worker exposing the public HTTP surface, and an Android automation bot that drives the in-game claim flow on a real device.
+`idle-outpost-codes` is intentionally tripartite. Each layer has a single responsibility and a single deployment target:
 
-- **Scrape** new codes from upstream web sources (`scraper.py` + BeautifulSoup4).
-- **Persist** local state (`store.py`) so re-runs are idempotent and previously seen codes are not retried.
-- **Redeem** codes through the official claim HTTP API (`redeemer.py` + `claim_api.py`) with authentication handled by `auth.py`.
-- **Notify** users across configured channels (`notifier.py`).
-- **Serve** the edge API and webhook surface through the `worker/` Cloudflare Worker deployed to `https://bot.jclee.me`.
-- **Automate** the in-game claim loop on a real Android device via `idle_outpost_bot/` (Appium + PaddleOCR + computer-vision calibration).
+| Layer | Language | Runtime | Responsibility |
+|---|---|---|---|
+| **CLI core** | Python 3.11+ | uv / local venv | Headless scraping, deduplication, authentication, redemption, notification |
+| **Edge API** | TypeScript | Cloudflare Workers (Wrangler) | Public HTTPS surface at `https://cliproxy.jclee.me/v1`, request signing, rate limiting |
+| **Android bot** | Python + Appium | Homelab runner | In-game claim flow: calendar, quest board, cards, swipe gestures, OCR-driven state machine |
 
-> 본 저장소는 헤드리스 스크래핑 · 수령을 위한 Python CLI 코어, 공개 HTTP 표면을 노출하는 TypeScript Cloudflare Worker, 그리고 실기기에서 인게임 수령 루프를 구동하는 Android 자동화 봇의 세 가지로 의도적으로 구성되어 있습니다.
+The repository also embeds its own development automation. Mutating work — opening branches from issues, reviewing PRs, auto-merging trusted PRs, auto-healing CI failures, drafting release notes, cutting releases — is performed by **jclee-bot**, an LLM-driven automation identity reachable at `bot.jclee.me`. GitHub Actions workflow files exist only to trigger jclee-bot; they are not the automation surface itself.
 
 ---
 
 ## Features / 주요 기능
 
-### Python CLI core / Python CLI 코어
-- `scraper.py` — HTML scraping of upstream promo-code sources with BeautifulSoup4.
-- `store.py` — local persistent state with dedup guarantees.
-- `redeemer.py` + `claim_api.py` — typed HTTP client for the official claim API.
-- `auth.py` — session/token lifecycle for the claim endpoint.
-- `notifier.py` — multi-channel delivery (extensible sink interface).
-- `main.py` — Typer-style CLI orchestrator (`scrape`, `claim`, `notify`, `run`).
-- `uv.lock` + `pyproject.toml` — fully reproducible environment via `uv`.
+### Promo-code lifecycle / 프로모션 코드 라이프사이클
+- **Scraping** (`scraper.py`, `claim_api.py`) — pulls candidate codes from configured public sources using `httpx` and `beautifulsoup4`.
+- **Persistence** (`store.py`) — SQLite-backed local store with strict deduplication and audit history.
+- **Authentication** (`auth.py`) — credential resolution, token refresh, request signing.
+- **Redemption** (`redeemer.py`) — calls the upstream Idle Outpost claim endpoint and records outcomes.
+- **Notification** (`notifier.py`) — outbound alerts and status fan-out through the Worker edge.
+- **CLI entry point** (`main.py`) — subcommands for `scrape`, `claim`, `list`, `verify`, `notify`.
 
-### Cloudflare Worker / Cloudflare Worker
-- `worker/src/index.ts` — request routing, signing, and rate-limit edge logic.
-- `worker/wrangler.jsonc` — declarative Workers / KV bindings.
-- `worker-deploy.yml` — production deploy on tagged releases.
+### Cloudflare Worker edge / Cloudflare Worker 엣지
+- `worker/src/index.ts` exposes the public HTTPS surface, terminating and forwarding traffic to the Python core's endpoints.
+- Configured via `worker/wrangler.jsonc`; deployed through the `worker-deploy` GitHub Actions trigger.
+- Public base URL: `https://cliproxy.jclee.me/v1`.
 
 ### Android automation bot / Android 자동화 봇 (`idle_outpost_bot/`)
-- `driver.py` — Appium-Python-Client session against a UIAutomator2 backend.
-- `vision.py` — PaddleOCR screen reading with reference-template matching.
-- `actions.py` — high-level game actions (open inbox, open calendar, claim cards, etc.).
-- `loop.py` — long-running orchestration loop with idempotent per-day state.
-- `state.py` + `settings.py` + `safety.py` + `config_loader.py` — durable runtime state, configuration, and human-override safety.
-- `discover.py` — ADB-based device discovery and capability probing.
-- `calibrate.py` + `auto_calibrate.py` — interactive and headless calibration against `calibration/*.png` reference images.
-- `calibration/` — per-screen OCR YAMLs + reference PNGs (main screen, cards, calendar, quest board, inbox, …).
-- `i18n_ko.properties` — Korean in-game text dictionary for OCR post-processing.
-- Research artifacts: `AD_REWARDS.md`, `API_RESEARCH.md`, `AUTOMATION_TARGETS.md`, `CALIBRATION_FULL.md`, `JADX_FULL_INVENTORY.md`.
+- **Driver** (`driver.py`) — Appium-Python-Client session, gesture primitives, screen capture.
+- **Vision** (`vision.py`) — PaddleOCR-driven screen reading; consumes calibration templates from `calibration/*.ocr.yaml` and `calibration/*.png`.
+- **Loop** (`loop.py`, `actions.py`) — state machine covering main screen, calendar, quest board, cards, wheel, inbox, TV ads, and the post-claim back stack.
+- **Safety** (`safety.py`, `settings.py`, `state.py`) — kill-switch, run-budget enforcement, screen-state assertions.
+- **Calibration** (`auto_calibrate.py`, `calibrate.py`, `discover.py`) — discovers new screen variants and emits OCR templates.
+- **i18n** (`i18n_ko.properties`) — Korean string pack for OCR hints and log lines.
+- **Target inventory** — `AD_REWARDS.md`, `API_RESEARCH.md`, `AUTOMATION_TARGETS.md`, `CALIBRATION_FULL.md`, `JADX_FULL_INVENTORY.md` document the in-game screens the bot drives.
 
-### GitHub-native automation / GitHub 자동화
-- 15 production workflows orchestrated by the **jclee-bot** GitHub App (see the dedicated section below).
-- AI-assisted code review, security review, auto-merge, and LLM-driven CI auto-healing.
-- Worker deploys and release pipelines bound to semantic-version tags.
+### LLM-driven GitHub automation / LLM 기반 GitHub 자동화
+- AI-assisted PR review and security PR review.
+- Dependabot PR auto-merge for trusted patch/minor bumps.
+- General PR auto-merge for PRs that pass the review and CI gates.
+- LLM-driven auto-fix on CI failure (workflow `14_bot-auto-fix.yml`).
+- Issue-driven branch and PR creation (workflows `01_branch-to-pr.yml`, `02_issue-to-branch.yml`).
+- Auto-generated release notes and releases (workflows `24_release-notes.yml`, `25_release-publish.yml`).
+- Downstream health checks (workflow `29_downstream-health-check.yml`).
+- Auto-opened issues for persistent CI failures (workflow `37_ci-failure-issues.yml`).
+- Post-merge cleanup (workflow `15_merged-pr-cleanup.yml`).
+- Issue backfill (workflow `19_issue-backfill.yml`).
 
 ---
 
 ## Architecture / 아키텍처
 
+The diagram below is the source of truth. Workflow files are deliberately shown as a single grouped node because they are triggers, not surfaces — all mutating work flows through jclee-bot.
+
 ```mermaid
 flowchart LR
-    User["Developer or External Contributor"]
-    Sub["End-user of the edge API"]
-
-    subgraph Repo["GitHub: idle-outpost-codes"]
-        direction TB
-        Core["Python CLI core<br/>main.py, scraper.py, redeemer.py,<br/>claim_api.py, store.py, notifier.py, auth.py"]
-        Wrk["Cloudflare Worker<br/>worker/src/index.ts<br/>wrangler.jsonc"]
-        Bot["Android bot<br/>idle_outpost_bot/<br/>driver + vision + actions + loop<br/>(Appium + PaddleOCR)"]
-        Cal["Calibration assets<br/>idle_outpost_bot/calibration/<br/>OCR YAML + reference PNGs"]
-        Wh["15 GitHub Actions workflows<br/>(implementation triggers)"]
+    subgraph SRC["Promo code sources / 소스"]
+        WEB["Public web & social feeds"]
+        GAME["In-game claim UI<br/>(Android device)"]
     end
 
-    subgraph App["jclee-bot GitHub App (mutating automation owner)"]
-        direction TB
-        I2B["Issue to branch (02)"]
-        Rev["PR review (10) and security review (11)<br/>via qodo-ai/pr-agent"]
-        Merge["Dependabot auto-merge (12)<br/>PR auto-merge (13)"]
-        Fix["Bot auto-fix (14)"]
-        Cln["Merged PR cleanup (15)<br/>Issue backfill (19)"]
-        Rel["Release notes (24) and publish (25)"]
-        Hlt["Downstream health (29)<br/>CI failure issues (37)"]
-        Br["Branch to PR (01)"]
-        CIW["ci.yml and worker-deploy.yml"]
+    subgraph CORE["Python CLI core / Python 코어"]
+        SCRAPER["scraper.py"]
+        STORE["store.py"]
+        AUTH["auth.py"]
+        REDEEMER["redeemer.py"]
+        NOTIFIER["notifier.py"]
+        MAIN["main.py<br/>CLI entry point"]
     end
 
-    subgraph Lab["Homelab runtime (private network)"]
-        CP["CLIProxyAPI<br/>&lt;homelab-host&gt;:8317<br/>primary: gpt-5.5<br/>fallback: minimax-m3"]
-        Logs["Observability sink<br/>&lt;homelab-elk&gt;"]
+    subgraph EDGE["Cloudflare Worker edge / 엣지"]
+        WORKER["worker/src/index.ts<br/>https://cliproxy.jclee.me/v1"]
     end
 
-    Pub["Public endpoint<br/>https://cliproxy.jclee.me/v1"]
-    PRA["qodo-ai/pr-agent<br/>(review engine)"]
-    Src["Upstream promo-code sources"]
-    Game["Idle Outpost Android client"]
+    subgraph HOMELAB["Homelab runtime / 홈랩"]
+        PROXY["&lt;homelab-host&gt;<br/>CLIProxyAPI listener"]
+        ANDROID["&lt;homelab-elk&gt;<br/>Android runner + ADB"]
+    end
 
-    User -->|opens issues or PRs| App
-    Sub -->|HTTPS| Wrk
-    App -->|mutates branches, PRs, releases| Repo
-    Wh -.->|invoked by events| App
-    App -->|reviews via| PRA
-    App -->|LLM calls| Pub
-    Pub --> CP
-    CP -.->|telemetry| Logs
-    Core -->|scrapes| Src
-    Core -->|redeems via HTTP| Game
-    Wrk -->|reads| Core
-    Bot -->|reads OCR references| Cal
-    Bot -->|drives via UIAutomator| Game
-    Core -->|notifies| Sub
+    subgraph BOT["idle_outpost_bot/ - Android automation"]
+        DRIVER["driver.py + Appium"]
+        VISION["vision.py + PaddleOCR"]
+        LOOP["loop.py + actions.py"]
+        CALIB["calibration/<br/>OCR templates"]
+    end
+
+    subgraph GH["GitHub automation surface / 자동화 영역"]
+        ISSUES["Issues &amp; PRs"]
+        JCBOT["jclee-bot<br/>(LLM-driven)<br/>gpt-5.5 primary<br/>minimax-m3 fallback"]
+        WF["15 GitHub Actions<br/>workflow files<br/>(triggers only)"]
+    end
+
+    WEB --> SCRAPER
+    SCRAPER --> STORE
+    STORE --> AUTH
+    AUTH --> REDEEMER
+    REDEEMER --> NOTIFIER
+    NOTIFIER --> MAIN
+    MAIN -->|HTTPS POST| WORKER
+    WORKER -->|public traffic| PROXY
+    PROXY -->|authenticated| REDEEMER
+
+    GAME --> ANDROID
+    ANDROID --> DRIVER
+    DRIVER --> VISION
+    VISION --> CALIB
+    VISION --> LOOP
+    LOOP -->|screen state| DRIVER
+
+    ISSUES -->|issue automation marker:<br/>jclee-bot에의해자동화됨| JCBOT
+    JCBOT -->|mutates branches &amp; PRs| CORE
+    JCBOT -->|mutates worker code| WORKER
+    JCBOT -->|auto-merge &amp; auto-fix| ISSUES
+    WF -->|invokes| JCBOT
+    WF -->|builds| CORE
+    WF -->|deploys via Wrangler| WORKER
+    WF -->|schedules| ANDROID
 ```
 
-### Data and trust boundaries / 데이터 · 신뢰 경계
+---
 
-- The Cloudflare Worker is the **only** public ingress. The Python CLI and the Android bot stay on the homelab network.
-- CLIProxyAPI is the **single LLM gateway**. All `jclee-bot` model calls traverse `https://cliproxy.jclee.me/v1`; the worker never reaches the upstream model vendor directly.
-- The Android bot never receives secrets. It talks to the game client through UIAutomator and reads screen state through PaddleOCR — no privileged game-side integrations.
+## jclee-bot automation surfaces / jclee-bot 자동화 영역
+
+jclee-bot is the single mutating identity in this repository. The 15 GitHub Actions workflow files exist only to invoke it on specific events; they never mutate the repository on their own. When jclee-bot performs automated work on an issue, the issue is labeled `jclee-bot에의해자동화됨` so humans can filter automated activity out of their queue.
+
+### Surfaces owned by jclee-bot / jclee-bot이 소유한 자동화 영역
+
+- **Issue triage and backfill** — newly opened issues are auto-triaged, labeled, and (when appropriate) converted into branches and PRs. Automated issue activity carries the marker `jclee-bot에의해자동화됨`.
+- **PR review** — every non-Dependabot PR receives an AI-assisted review using a [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) style reviewer, with a separate security-focused pass for code that touches authentication, networking, or persistence.
+- **Dependabot auto-merge** — patch and minor Dependabot PRs that pass CI and review are auto-merged.
+- **General PR auto-merge** — PRs that pass review, CI, and any required checks are auto-merged.
+- **CI auto-healing** — failing CI runs are diagnosed by jclee-bot; when a fix is straightforward, a follow-up PR is opened with the patch. If the failure persists, jclee-bot opens a tracked issue labeled `jclee-bot에의해자동화됨`.
+- **Release automation** — release notes are drafted from the merged-PR set and releases are cut and published without human intervention when the auto-merge policy is satisfied.
+- **Post-merge cleanup** — merged feature branches and their associated scratch refs are pruned.
+- **Downstream health** — periodic checks verify that the Worker edge and the Android bot runner remain reachable; degradations are surfaced as issues.
+
+### Models / 모델
+
+- Primary: `gpt-5.5` (default for review, auto-fix, and release drafting).
+- Fallback: `minimax-m3` reached through CLIProxyAPI at `https://cliproxy.jclee.me/v1` when the primary is unavailable.
+- Operational status: reachable at `bot.jclee.me`.
+
+### Human escape hatches / 사람 개입 경로
+
+- Adding the `no-bot` label to a PR or issue suspends all jclee-bot activity on that item.
+- Reviewers with write access may dismiss an automated review and re-request human review.
+- Auto-merge is opt-out per PR; Dependabot exclusions are honored.
 
 ---
 
-## jclee-bot Automation Surfaces / jclee-bot 자동화 영역
+## Go tools / Go 도구
 
-All mutating GitHub-side automation in this repository is owned by the **jclee-bot** GitHub App. The 15 workflow files in `.github/workflows/` are the *event triggers*; the actual automation contract lives in jclee-bot. Workflows are deliberately not enumerated as a table — they are implementation details of the surfaces below.
-
-### Behavior catalog / 동작 카탈로그
-
-1. **Issue → Branch** (`02_issue-to-branch.yml`)
-   On labeled issues, jclee-bot opens a working branch and seeds it with an issue-derived scaffold. New issues arriving in this repository are processed automatically: `jclee-bot에의해자동화됨`.
-
-2. **Branch → PR** (`01_branch-to-pr.yml`)
-   When a working branch is pushed, jclee-bot opens a PR linked back to the originating issue.
-
-3. **PR Review** (`10_pr-review.yml`)
-   LLM-assisted code review per push. Primary model: **gpt-5.5**. Fallback: **minimax-m3 via CLIProxyAPI** at `https://cliproxy.jclee.me/v1`.
-
-4. **Security PR Review** (`11_security-pr-review.yml`)
-   Dedicated security-focused pass on the same PR surface, with stricter ruleset and SARIF-style annotations.
-
-5. **Dependabot Auto-Merge** (`12_dependabot-auto-merge.yml`)
-   Auto-merge for Dependabot PRs that pass CI and review gates.
-
-6. **PR Auto-Merge** (`13_pr-auto-merge.yml`)
-   Auto-merge for PRs that meet branch-protection and review criteria.
-
-7. **Bot Auto-Fix** (`14_bot-auto-fix.yml`)
-   LLM-driven CI self-heal: failing CI jobs are handed to jclee-bot which opens a follow-up PR with the minimum surgical fix. Uses the same gpt-5.5 / minimax-m3 model routing.
-
-8. **Merged PR Cleanup** (`15_merged-pr-cleanup.yml`)
-   Deletes merged head branches and closes out related tracking issues.
-
-9. **Issue Backfill** (`19_issue-backfill.yml`)
-   Periodically reconciles missing metadata (labels, milestones, project fields).
-
-10. **Release Notes** (`24_release-notes.yml`)
-    Aggregates merged PRs and conventional commits into a draft release on tag.
-
-11. **Release Publish** (`25_release-publish.yml`)
-    Cuts a GitHub Release, attaches artifacts, and triggers `worker-deploy.yml`.
-
-12. **Downstream Health Check** (`29_downstream-health-check.yml`)
-    Pings the deployed Worker at `https://bot.jclee.me` after release; opens a CI-failure issue on regression.
-
-13. **CI Failure → Issue** (`37_ci-failure-issues.yml`)
-    On persistent `ci.yml` red, jclee-bot opens or reopens a tracking issue. New and reopened issues in this surface carry the marker `jclee-bot에의해자동화됨`.
-
-14. **CI** (`ci.yml`)
-    Test matrix for the Python CLI and the bot's pure-Python helpers; gates every PR.
-
-15. **Worker Deploy** (`worker-deploy.yml`)
-    Publishes the `worker/` bundle on tagged releases via `wrangler deploy`.
-
-### Model routing / 모델 라우팅
-
-| Concern / 항목 | Primary | Fallback |
-| --- | --- | --- |
-| PR review / 보안 리뷰 | `gpt-5.5` | `minimax-m3` via `https://cliproxy.jclee.me/v1` |
-| Auto-fix / 자기 복구 | `gpt-5.5` | `minimax-m3` via `https://cliproxy.jclee.me/v1` |
-| Release notes drafting | `gpt-5.5` | `minimax-m3` via `https://cliproxy.jclee.me/v1` |
-
-The homelab host running CLIProxyAPI is referenced only as `<homelab-host>:8317` in this repository; the public ingress is exclusively `https://cliproxy.jclee.me/v1`. No RFC1918 address, container number, or LXC ID is hardcoded in this README by design.
+This repository does not contain any Go-based automation tools. **0 Go tools** are registered. All automation is performed by the LLM-backed jclee-bot reached through GitHub Actions triggers; no `cmd/`, `internal/`, or `go.mod` artifacts exist in this tree, and none are planned. If a future Go helper is added it will be registered in this section as a first-class tool, not as a workflow file.
 
 ---
 
-## Go Tools / Go 도구
+## Quick start / 빠른 시작
 
-This repository ships **zero Go automation tools**. All automation is either Python (CLI core, bot) or TypeScript (Cloudflare Worker). When Go tooling is added, it will be enumerated here; until then the section is intentionally empty rather than omitted.
-
-> 본 저장소에는 Go 기반 자동화 도구가 없습니다. 모든 자동화는 Python (CLI 코어, 봇) 또는 TypeScript (Cloudflare Worker)로 구현되어 있습니다.
-
----
-
-## Quick Start / 빠른 시작
-
-### Prerequisites / 사전 요구사항
-- Python **3.11+**
-- [`uv`](https://github.com/astral-sh/uv) for reproducible installs
-- Node.js **20+** and [`wrangler`](https://developers.cloudflare.com/workers/wrangler/) for the Worker
-- An Android device or emulator with USB debugging for the bot
-- A configured `.env` (see `idle_outpost_bot/settings.py` for the expected keys)
-
-### Install / 설치
+### 1. Clone and bootstrap / 클론 및 부트스트랩
 
 ```bash
-# 1. Clone and enter the repo
-git clone https://github.com/<owner>/idle-outpost-codes.git
+git clone <this-repository-url> idle-outpost-codes
 cd idle-outpost-codes
-
-# 2. Python environment + CLI core
-uv sync
-
-# 3. Bot extras (heavy: includes PaddleOCR + PaddlePaddle)
 uv sync --extra bot
-
-# 4. Worker dependencies
-cd worker
-npm ci
-cd ..
+cp .env.example .env  # fill in credentials, see "Local development"
 ```
 
-### Run the CLI / CLI 실행
+### 2. Run the CLI / CLI 실행
 
 ```bash
-# Scrape latest codes and update the local store
+# Scrape candidate codes from configured sources
 uv run python main.py scrape
 
-# Redeem all unseen codes against the official claim API
-uv run python main.py claim
+# List known codes with status
+uv run python main.py list
 
-# Send pending notifications
-uv run python main.py notify
+# Redeem a specific code
+uv run python main.py claim <CODE>
 
-# End-to-end: scrape -> claim -> notify
-uv run python main.py run
+# Verify a code without redeeming
+uv run python main.py verify <CODE>
 ```
 
-### Run the Worker locally / Worker 로컬 실행
+### 3. Deploy the Worker / Worker 배포
 
 ```bash
 cd worker
-npx wrangler dev
-# Worker is now reachable at http://127.0.0.1:8787
+npm ci
+npx wrangler deploy
+# Public surface: https://cliproxy.jclee.me/v1
 ```
 
-### Run the Android bot / Android 봇 실행
+### 4. Run the Android bot / Android 봇 실행
 
 ```bash
-# Calibrate against the reference PNGs in idle_outpost_bot/calibration/
-uv run python -m idle_outpost_bot calibrate
-
-# Headless auto-calibration (one-shot, no prompts)
-uv run python -m idle_outpost_bot auto_calibrate
-
-# Start the long-running claim loop against the connected device
-uv run python -m idle_outpost_bot
+# Requires a reachable Android device or emulator on the homelab runner
+uv run python -m idle_outpost_bot --config idle_outpost_bot/settings.yaml
 ```
 
 ---
 
-## Local Development / 로컬 개발
+## Local development / 로컬 개발
 
-### Layout / 디렉터리 구조
+### Prerequisites / 사전 요구사항
+
+- Python ≥ 3.11 (managed by `uv`, see `uv.lock`).
+- Node.js ≥ 20 and Wrangler for the Worker.
+- An Android device or emulator reachable from `<homelab-host>` for the bot.
+- Appium server, PaddleOCR runtime, and PaddlePaddle installed (provided by the `bot` extra).
+- A reachable CLIProxyAPI instance at `https://cliproxy.jclee.me/v1` if you want jclee-bot fallbacks to work locally.
+
+### Environment / 환경 변수
+
+The Python core reads configuration from environment variables (loaded via `python-dotenv`). The most important keys:
+
+| Variable | Purpose |
+|---|---|
+| `IDLE_OUTPOST_AUTH_TOKEN` | Bearer token for the upstream claim API |
+| `IDLE_OUTPOST_NOTIFY_WEBHOOK` | Webhook URL for `notifier.py` |
+| `IDLE_OUTPOST_DB_PATH` | Override the default SQLite path used by `store.py` |
+| `APPIUM_SERVER_URL` | Appium endpoint consumed by `driver.py` (default: `http://<homelab-host>:4723`) |
+| `ANDROID_DEVICE_UDID` | Target device for the bot runner |
+| `CLIPROXY_BASE_URL` | LLM fallback endpoint (default: `https://cliproxy.jclee.me/v1`) |
+
+### Lint and type-check / 린트와 타입 체크
+
+```bash
+uv run ruff check .
+uv run basedpyright
+```
+
+### Calibration workflow / 캘리브레이션
+
+When the in-game UI drifts, refresh the OCR templates:
+
+```bash
+uv run python -m idle_outpost_bot.auto_calibrate \
+    --screen calendar \
+    --out idle_outpost_bot/calibration/calendar.ocr.yaml
+```
+
+Capture new reference images into `idle_outpost_bot/calibration/` and commit alongside the YAML template.
+
+---
+
+## Commands reference / 명령어 레퍼런스
+
+### Python CLI / Python CLI
+
+| Command | Description |
+|---|---|
+| `uv run python main.py scrape` | Pull candidate codes from all configured sources |
+| `uv run python main.py list` | List known codes with their last-known status |
+| `uv run python main.py claim <CODE>` | Redeem a single code |
+| `uv run python main.py verify <CODE>` | Check a code's validity without redeeming |
+| `uv run python main.py notify` | Re-send notifications for the latest run |
+| `uv run python -m idle_outpost_bot` | Run the Android bot loop |
+| `uv run python -m idle_outpost_bot.calibrate` | Interactive calibration session |
+| `uv run python -m idle_outpost_bot.auto_calibrate` | Headless auto-calibration |
+
+### Worker / Worker
+
+| Command | Description |
+|---|---|
+| `cd worker && npm ci` | Install Worker dependencies |
+| `cd worker && npx wrangler dev` | Run the Worker locally |
+| `cd worker && npx wrangler deploy` | Deploy the Worker to Cloudflare |
+| `cd worker && npx wrangler tail` | Stream live Worker logs |
+
+### Repository hygiene / 저장소 관리
+
+| Command | Description |
+|---|---|
+| `uv run ruff check .` | Lint with Ruff (line length 100, target py311) |
+| `uv run basedpyright` | Type-check with basedpyright (`.venv` aware) |
+| `uv lock` | Refresh `uv.lock` |
+
+---
+
+## Repository structure / 저장소 구조
 
 ```
 .
 ├── CONTRIBUTING.md
 ├── LICENSE
 ├── README.md
-├── auth.py
-├── claim_api.py
-├── main.py
-├── notifier.py
 ├── pyproject.toml
-├── redeemer.py
-├── scraper.py
-├── store.py
 ├── uv.lock
 ├── video1.png
-├── worker/
+│
+├── auth.py                 # credential resolution, request signing
+├── claim_api.py            # upstream claim HTTP client
+├── main.py                 # CLI entry point
+├── notifier.py             # outbound notifications
+├── redeemer.py             # redemption orchestration
+├── scraper.py              # source scraping
+├── store.py                # SQLite-backed persistence
+│
+├── worker/                 # Cloudflare Worker edge API
 │   ├── README.md
 │   ├── package.json
 │   ├── package-lock.json
@@ -300,13 +329,14 @@ uv run python -m idle_outpost_bot
 │   ├── wrangler.jsonc
 │   └── src/
 │       └── index.ts
-└── idle_outpost_bot/
+│
+└── idle_outpost_bot/       # Android automation bot
+    ├── README.md
     ├── AD_REWARDS.md
     ├── API_RESEARCH.md
     ├── AUTOMATION_TARGETS.md
     ├── CALIBRATION_FULL.md
     ├── JADX_FULL_INVENTORY.md
-    ├── README.md
     ├── __init__.py
     ├── __main__.py
     ├── actions.py
@@ -322,103 +352,43 @@ uv run python -m idle_outpost_bot
     ├── settings.py
     ├── state.py
     ├── vision.py
-    └── calibration/
-        ├── *.ocr.yaml / *.yaml
-        └── *.png
+    └── calibration/         # OCR templates + reference screenshots
+        ├── after_cards.ocr.yaml
+        ├── after_cards.png
+        ├── …                # many screen variants
+        └── swipe_test.ocr.yaml
 ```
 
-### Linting and type checks / 린트 · 타입 체크
-
-```bash
-# Lint (configured in pyproject.toml)
-uv run ruff check .
-
-# Type check (basedpyright)
-uv run basedpyright
-```
-
-### Adding a new calibration screen / 새 보정 화면 추가
-
-1. Capture a clean reference PNG of the target screen and drop it in `idle_outpost_bot/calibration/`.
-2. Add a companion `*.ocr.yaml` describing the expected OCR anchors and tolerances.
-3. Extend `idle_outpost_bot/loop.py` with the new high-level action in `actions.py`.
-4. Re-run `python -m idle_outpost_bot auto_calibrate` and verify the deterministic check screen matches.
-
-### Worker iteration / Worker 반복 개발
-
-- Edit `worker/src/index.ts`.
-- `npx wrangler dev` to iterate locally against the Wrangler dev server.
-- The production deploy is bound to `worker-deploy.yml`; do not invoke `wrangler deploy` from a developer machine.
+> The 15 GitHub Actions workflow files are intentionally not listed in the tree — they are implementation triggers, not part of the repository's logical structure.
 
 ---
 
-## Commands Reference / 명령어 레퍼런스
+## Contribution guide / 기여 가이드
 
-### Python CLI (`main.py`) / Python CLI
+### Reporting issues / 이슈 신고
 
-| Command | Purpose |
-| --- | --- |
-| `python main.py scrape` | Pull latest codes from upstream sources, dedupe via `store.py`. |
-| `python main.py claim` | Redeem unseen codes through the official claim API. |
-| `python main.py notify` | Deliver queued notifications to configured channels. |
-| `python main.py run` | Convenience: `scrape` → `claim` → `notify`. |
+- Open an issue with a clear reproduction, the relevant CLI subcommand, and a Worker request id when applicable.
+- Issues opened by jclee-bot are labeled `jclee-bot에의해자동화됨`; please do not mass-close or mass-reopen them — they are the canonical automation record.
 
-### Android bot (`idle_outpost_bot`) / Android 봇
+### Sending PRs / PR 보내기
 
-| Command | Purpose |
-| --- | --- |
-| `python -m idle_outpost_bot` | Start the long-running claim loop on the connected device. |
-| `python -m idle_outpost_bot calibrate` | Interactive calibration against `calibration/*.png`. |
-| `python -m idle_outpost_bot auto_calibrate` | Headless auto-calibration. |
-| `python -m idle_outpost_bot discover` | Enumerate ADB devices and dump capabilities. |
+- Branch from `main`, keep changes focused, and prefer small PRs.
+- PRs are auto-reviewed by jclee-bot. Address review comments directly in the PR; do not open follow-up issues for in-PR review threads.
+- Add the `no-bot` label if you want to suspend all jclee-bot activity on the PR (for example, when you need a human-only security review).
+- Dependabot PRs are auto-merged when patch/minor and CI is green. Add `no-bot` to opt out.
 
-### Cloudflare Worker / Cloudflare Worker
+### Working with jclee-bot / jclee-bot과 협업
 
-| Command | Purpose |
-| --- | --- |
-| `npm ci` (inside `worker/`) | Install Worker dependencies deterministically. |
-| `npx wrangler dev` | Local dev server. |
-| `npx wrangler deploy` | Production deploy (typically invoked by `worker-deploy.yml`). |
+- jclee-bot opens branches and PRs from issues. If you want to take over, comment `/takeover` on the PR; jclee-bot will stop mutating it.
+- Release notes and releases are produced by jclee-bot. If you need to cut a manual release, add the `manual-release` label to disable the next auto-release on `main`.
+- The `no-bot` label is the canonical off switch for any single item.
 
-### Repository hygiene / 저장소 위생
+### Coding standards / 코딩 표준
 
-| Command | Purpose |
-| --- | --- |
-| `uv run ruff check .` | Lint Python sources. |
-| `uv run basedpyright` | Static type check. |
-| `uv lock` | Refresh `uv.lock` after dependency edits. |
+- Python: Ruff with the configuration in `pyproject.toml` (`line-length = 100`, `target-version = "py311"`). Type-check with basedpyright.
+- TypeScript: strict mode, ESLint with the Worker defaults.
+- All automation behavior must remain observable through jclee-bot logs; do not bypass jclee-bot by hand-rolling workflow logic that mutates the repository.
 
----
+### License / 라이선스
 
-## Contribution Guide / 기여 가이드
-
-### Branch and issue flow / 브랜치 · 이슈 흐름
-
-1. **Open an issue first.** jclee-bot will create a working branch automatically — the resulting issue will carry the marker `jclee-bot에의해자동화됨` once the bot has processed it.
-2. **Push to the auto-created branch.** jclee-bot will open a PR via `01_branch-to-pr.yml`.
-3. **Wait for review.** PR review (`10_pr-review.yml`) and security review (`11_security-pr-review.yml`) run on every push. Address review threads directly on the PR.
-4. **Merge.** Once checks and reviews pass, jclee-bot will auto-merge per `13_pr-auto-merge.yml` (or `12_dependabot-auto-merge.yml` for Dependabot PRs).
-5. **Cleanup.** Merged head branches are removed by `15_merged-pr-cleanup.yml`. The originating issue is closed by the same workflow.
-
-### Coding conventions / 코딩 규칙
-
-- Python targets **3.11+** and is configured for `ruff` (line length 100) and `basedpyright` strictness — see `pyproject.toml`.
-- TypeScript follows the `tsconfig.json` shipped under `worker/`.
-- The Android bot's screen labels are mirrored in `i18n_ko.properties`. Add new strings there when introducing a new Korean in-game term.
-
-### Safety and reviewability / 안전성 · 리뷰 가능성
-
-- The Android bot's `safety.py` and `settings.py` are the only sources of truth for human-override behavior. Any change to those modules requires an explicit approval from a maintainer; jclee-bot's auto-merge is disabled for those paths.
-- Calibration assets in `idle_outpost_bot/calibration/` are versioned because every bot run reads against them. Treat edits as breaking changes and document them in the PR description.
-- Cloudflare Worker changes that affect the public edge surface (`https://bot.jclee.me`) require a tagged release to ship — direct `wrangler deploy` from a developer machine is not supported.
-
-### Reporting problems / 문제 보고
-
-- For CI red that does not auto-recover, watch for the `jclee-bot에의해자동화됨` issue opened by `37_ci-failure-issues.yml` and reply there.
-- For LLM-routing regressions (gpt-5.5 unavailable, minimax-m3 fallback engaged), open an issue labeled `llm-routing` so `29_downstream-health-check.yml` can re-verify once the homelab CLIProxyAPI is healthy again.
-
----
-
-## License / 라이선스
-
-See [`LICENSE`](./LICENSE) for details.
+See `LICENSE`.
