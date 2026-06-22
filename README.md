@@ -1,232 +1,188 @@
 # Idle Outpost Codes
 
+> Promotional-code monitoring, daily-claim CLI, Android automation bot, and Cloudflare Worker API for the Idle Outpost ecosystem — all wrapped in a heavily automated GitHub workflow environment.
+>
+> Idle Outpost 프로모션 코드 모니터링, 일일 보상 수령 CLI, Android 자동화 봇, Cloudflare Worker API를 하나의 자동화 프로젝트로 묶었습니다.
+
 ![CI](../../actions/workflows/ci.yml/badge.svg)
-![PR Checks](../../actions/workflows/03_pr-checks.yml/badge.svg)
-![Actionlint](../../actions/workflows/04_actionlint.yml/badge.svg)
-![CodeQL](../../actions/workflows/06_codeql.yml/badge.svg)
+![PR Review](../../actions/workflows/10_pr-review.yml/badge.svg)
+![Security PR Review](../../actions/workflows/11_security-pr-review.yml/badge.svg)
+![Dependabot Auto-Merge](../../actions/workflows/12_dependabot-auto-merge.yml/badge.svg)
+![PR Auto-Merge](../../actions/workflows/13_pr-auto-merge.yml/badge.svg)
+![CI Auto-Heal](../../actions/workflows/60_ci-auto-heal.yml/badge.svg)
 ![Worker Deploy](../../actions/workflows/worker-deploy.yml/badge.svg)
 
-Idle Outpost promo code monitor, daily claim CLI, Android automation bot, and Cloudflare Worker API.
-
-Idle Outpost 프로모션 코드 모니터링, 일일 보상 수령 CLI, Android 자동화 봇, Cloudflare Worker API를 포함한 자동화 프로젝트입니다.
+---
 
 ## Overview / 개요
 
-This repository contains a Python-based automation toolkit for Idle Outpost-related workflows:
+`idle-outpost-codes` is a Python-based automation toolkit that covers the full lifecycle of Idle Outpost promo-code operations: scraping new codes, persisting local state, redeeming rewards via an HTTP API, notifying subscribers, and — optionally — driving an Android device through Appium + PaddleOCR. A companion Cloudflare Worker (under `worker/`) exposes a lightweight API, and the repository itself is maintained by 17 GitHub Actions workflows that handle review, security, dependabot, auto-merge, release, CI auto-healing, and post-merge cleanup.
 
-- Scraping and monitoring promotional codes
-- Redeeming or claiming available rewards
-- Persisting discovered state locally
-- Sending notifications
-- Running an optional Android automation bot with Appium/OCR-based calibration
-- Serving a lightweight Worker API under `worker/`
-- Maintaining a heavily automated GitHub workflow environment for review, security, documentation, releases, and self-healing CI
+`idle-outpost-codes`는 Idle Outpost 프로모션 코드 운영의 전체 수명 주기를 다루는 Python 자동화 도구입니다. 신규 코드 스크래핑, 로컬 상태 저장, HTTP API를 통한 보상 수령, 구독자 알림 전송, 그리고 선택적으로 Appium과 PaddleOCR로 Android 디바이스를 자동 제어합니다. `worker/` 디렉터리의 Cloudflare Worker는 경량 API를 제공하며, 저장소 자체는 17개의 GitHub Actions 워크플로우에 의해 리뷰 · 보안 · Dependabot · 자동 머지 · 릴리스 · CI 자동 복구 · 머지 후 정리까지 자동으로 유지됩니다.
 
-이 저장소는 Idle Outpost 관련 작업을 자동화하기 위한 Python 기반 도구 모음입니다.
-
-- 프로모션 코드 스크래핑 및 모니터링
-- 사용 가능한 보상 등록 또는 수령
-- 발견된 상태의 로컬 저장
-- 알림 전송
-- Appium/OCR 기반 보정 기능을 사용하는 선택적 Android 자동화 봇
-- `worker/` 디렉터리의 경량 Worker API
-- 리뷰, 보안, 문서, 릴리스, CI 자동 복구를 위한 GitHub 자동화 구성
+---
 
 ## Features / 주요 기능
 
 ### Core Python automation / 핵심 Python 자동화
 
-- Promo code scraping via `scraper.py`
-- Code redemption flow via `redeemer.py`
-- Daily claim/API-related logic via `claim_api.py`
-- Authentication helper via `auth.py`
-- Notification helper via `notifier.py`
-- Persistent local state management via `store.py`
-- Main CLI entry point via `main.py`
+| Module | Role / 역할 |
+|---|---|
+| `scraper.py` | Scrapes and monitors new promotional codes from upstream sources. 신규 프로모션 코드를 스크래핑하고 모니터링합니다. |
+| `redeemer.py` | Drives the redemption/claim flow against the target API. 대상 API에 대해 코드 등록·수령 플로우를 실행합니다. |
+| `claim_api.py` | Encapsulates the daily-claim HTTP API contract and client logic. 일일 보상 HTTP API 계약과 클라이언트 로직을 캡슐화합니다. |
+| `auth.py` | Authentication helper for upstream services. 외부 서비스 인증 헬퍼입니다. |
+| `notifier.py` | Sends notifications (webhook/email/etc.) about newly discovered or redeemed codes. 신규·수령된 코드에 대한 알림을 전송합니다. |
+| `store.py` | Persists locally discovered state, redemption history, and bot checkpoints. 로컬 발견 상태, 수령 이력, 봇 체크포인트를 저장합니다. |
+| `main.py` | CLI entry point that orchestrates the scraper, redeemer, and notifier. 스크래퍼·리디머·알리미를 오케스트레이션하는 CLI 진입점입니다. |
 
-### Android automation bot / Android 자동화 봇
+### Android automation bot / Android 자동화 봇 (`idle_outpost_bot/`)
 
-The `idle_outpost_bot/` package provides optional device automation features.
+Optional package activated through the `bot` extra dependency. Provides:
 
-`idle_outpost_bot/` 패키지는 선택적 디바이스 자동화 기능을 제공합니다.
+`bot` 옵션 의존성으로 활성화되는 선택적 패키지이며 다음 기능을 제공합니다.
 
-Key capabilities include:
+- **Device driver (`driver.py`, `actions.py`)** — Appium / Selenium-based control of an Android device.
+- **Screen understanding (`vision.py`)** — PaddleOCR-based text recognition with calibration assets.
+- **Calibration assets (`calibration/*.png`, `calibration/*.ocr.yaml`)** — 50+ reference screenshots and OCR configs for in-game screens (main screen, calendar, cards, inbox, quest board, ad TV, wheel, etc.).
+- **Behavior loop (`loop.py`, `discover.py`)** — High-level navigation, screen probing, and routine execution.
+- **Safety & state (`safety.py`, `state.py`)** — Safe-stop conditions and persistent bot state.
+- **Notifications (`notify.py`)** — Bot-side alerting.
+- **Configuration (`settings.py`, `config_loader.py`, `i18n_ko.properties`)** — Runtime configuration and Korean localization.
+- **Auto-calibration (`auto_calibrate.py`, `calibrate.py`)** — Tools to refresh calibration assets against a live device.
+- **Package entry (`__main__.py`)** — Run the bot as `python -m idle_outpost_bot`.
 
-- Appium/Selenium-based device driver integration
-- OCR-assisted screen recognition
-- Calibration assets under `idle_outpost_bot/calibration/`
-- Safety and state management modules
-- Korean i18n properties file: `idle_outpost_bot/i18n_ko.properties`
-- Research and operation notes:
-  - `idle_outpost_bot/AD_REWARDS.md`
-  - `idle_outpost_bot/API_RESEARCH.md`
-  - `idle_outpost_bot/AUTOMATION_TARGETS.md`
-  - `idle_outpost_bot/CALIBRATION_FULL.md`
-  - `idle_outpost_bot/JADX_FULL_INVENTORY.md`
+### Cloudflare Worker API / Cloudflare Worker API (`worker/`)
 
-### Cloudflare Worker / Cloudflare Worker
+A TypeScript Cloudflare Worker (`worker/src/index.ts`) deployed via `wrangler.jsonc`. Provides a lightweight HTTP surface used by the Python CLI and external clients. Deployment is automated by `worker-deploy.yml`.
 
-The `worker/` directory contains a TypeScript Cloudflare Worker project.
+TypeScript 기반의 Cloudflare Worker(`worker/src/index.ts`)로 `wrangler.jsonc`를 통해 배포됩니다. Python CLI와 외부 클라이언트가 사용하는 경량 HTTP 엔드포인트를 제공하며, `worker-deploy.yml`을 통해 자동 배포됩니다.
 
-`worker/` 디렉터리에는 TypeScript 기반 Cloudflare Worker 프로젝트가 포함되어 있습니다.
+### GitHub automation environment / GitHub 자동화 환경
 
-Important files:
+17 workflow files (see [Automation Inventory](#automation-inventory--자동화-목록)) provide branch-to-PR, issue-to-branch, PR review, security review, dependabot auto-merge, auto-merge, bot auto-fix, merged-PR cleanup, issue backfill, release notes, release publishing, downstream health checks, CI failure issue creation, CI auto-heal, and issue classification.
 
-- `worker/src/index.ts`
-- `worker/package.json`
-- `worker/package-lock.json`
-- `worker/tsconfig.json`
-- `worker/wrangler.jsonc`
-- `worker/README.md`
+17개의 워크플로우 파일([Automation Inventory](#automation-inventory--자동화-목록) 참조)이 브랜치→PR, 이슈→브랜치, PR 리뷰, 보안 리뷰, Dependabot 자동 머지, 자동 머지, 봇 자동 수정, 머지 후 PR 정리, 이슈 백필, 릴리스 노트, 릴리스 게시, 다운스트림 헬스 체크, CI 실패 이슈 생성, CI 자동 복구, 이슈 분류를 제공합니다.
 
-### Repository automation / 저장소 자동화
-
-This repository includes 29 GitHub Actions workflow files for CI, security, pull request review, documentation, release automation, issue management, downstream checks, and CI auto-healing.
-
-이 저장소에는 CI, 보안, PR 리뷰, 문서, 릴리스, 이슈 관리, 다운스트림 점검, CI 자동 복구를 위한 29개의 GitHub Actions 워크플로가 포함되어 있습니다.
+---
 
 ## Architecture / 아키텍처
 
 ```mermaid
-flowchart TD
-    User["User / Operator<br/>사용자"] --> CLI["Python CLI<br/>main.py"]
-    CLI --> Auth["Authentication<br/>auth.py"]
-    CLI --> Scraper["Promo Code Scraper<br/>scraper.py"]
-    CLI --> Redeemer["Redeemer<br/>redeemer.py"]
-    CLI --> ClaimAPI["Daily Claim API Logic<br/>claim_api.py"]
-    CLI --> Store["Local State Store<br/>store.py"]
-    CLI --> Notifier["Notifier<br/>notifier.py"]
+flowchart TB
+    classDef dev fill:#eef,stroke:#446,color:#003
+    classDef repo fill:#efe,stroke:#464,color:#030
+    classDef gh fill:#fee,stroke:#644,color:#300
+    classDef ext fill:#fef,stroke:#646,color:#330
+    classDef bot fill:#ffe,stroke:#664,color:#440
 
+    subgraph DEV["Local Development / 로컬 개발"]
+        Dev["Developer"]
+        CLIProxy["CLIProxyAPI<br/>&lt;homelab-host&gt;:8317<br/>(gpt-5.5 / minimax-m3)"]
+        Venv["uv venv<br/>.venv"]
+    end
+
+    subgraph REPO["Repository / 저장소"]
+        Main["main.py<br/>CLI entry"]
+        Scraper["scraper.py"]
+        Redeemer["redeemer.py"]
+        Claim["claim_api.py"]
+        Store[("store.py<br/>local state")]
+        Bot["idle_outpost_bot/<br/>Appium + PaddleOCR"]
+        Worker["worker/src/index.ts<br/>Cloudflare Worker"]
+    end
+
+    subgraph GH["GitHub Automation (17 workflows)"]
+        CI["ci.yml"]
+        PR["10_pr-review.yml<br/>+ 11_security-pr-review.yml"]
+        Merge["13_pr-auto-merge.yml<br/>+ 12_dependabot-auto-merge.yml"]
+        Heal["60_ci-auto-heal.yml<br/>+ 37_ci-failure-issues.yml"]
+        Release["24_release-notes.yml<br/>+ 25_release-publish.yml"]
+        Classify["91_issue-classification.yml"]
+        Cleanup["15_merged-pr-cleanup.yml"]
+        Health["29_downstream-health-check.yml"]
+        WorkerDeploy["worker-deploy.yml"]
+    end
+
+    subgraph EXT["External / 외부"]
+        Endpoint["Public API<br/>https://cliproxy.jclee.me/v1"]
+        BotAPI["Worker API<br/>bot.jclee.me"]
+        Game["Idle Outpost<br/>promo endpoints"]
+        Device["Android Device"]
+        Notifier["notifier.py<br/>webhook / email"]
+    end
+
+    Dev --> Venv
+    Venv --> Main
+    CLIProxy -.->|model API| Dev
+    Dev -.->|optional| Bot
+    Bot --> Device
+
+    Main --> Scraper
+    Main --> Redeemer
+    Main --> Claim
     Scraper --> Store
     Redeemer --> Store
-    ClaimAPI --> Store
-    Notifier --> ExternalNotify["Notification Target<br/>알림 대상"]
+    Claim --> Store
+    Redeemer --> Game
+    Claim --> BotAPI
+    Worker --> BotAPI
+    WorkerDeploy --> Worker
 
-    BotUser["Bot Operator<br/>봇 사용자"] --> AndroidBot["Android Automation Bot<br/>idle_outpost_bot"]
-    AndroidBot --> Driver["Device Driver<br/>driver.py"]
-    AndroidBot --> Vision["Vision and OCR<br/>vision.py"]
-    AndroidBot --> Actions["Automation Actions<br/>actions.py"]
-    AndroidBot --> Safety["Safety Controls<br/>safety.py"]
-    AndroidBot --> BotState["Bot State<br/>state.py"]
-    Vision --> Calibration["Calibration Assets<br/>idle_outpost_bot/calibration"]
+    Main --> Notifier
+    Bot --> Notifier
 
-    WorkerClient["API Client<br/>클라이언트"] --> Worker["Cloudflare Worker<br/>worker/src/index.ts"]
-    Worker --> PublicEndpoint["https://cliproxy.jclee.me/v1"]
+    CI --> Heal
+    Heal -->|opens issues| Classify
+    PR --> Merge
+    Merge --> Release
+    Merge --> Cleanup
+    Release --> Health
+    Health --> Endpoint
 
-    GitHub["GitHub Repository"] --> ActionsCI["GitHub Actions<br/>CI, security, docs, releases"]
-    ActionsCI --> PRReview["PR Review Automation<br/>10_pr-review.yml"]
-    ActionsCI --> Security["Security Automation<br/>05_gitleaks.yml, 06_codeql.yml"]
-    ActionsCI --> Docs["Docs Automation<br/>20_readme-gen.yml, 21_docs-sync.yml"]
-    ActionsCI --> Release["Release Automation<br/>24_release-notes.yml, 25_release-publish.yml"]
+    class Dev,CLIProxy,Venv dev
+    class Main,Scraper,Redeemer,Claim,Store,Bot,Worker repo
+    class CI,PR,Merge,Heal,Release,Classify,Cleanup,Health,WorkerDeploy gh
+    class Endpoint,BotAPI,Game,Device,Notifier ext
 ```
 
-## Automation Inventory / 자동화 인벤토리
-
-### GitHub Actions workflows / GitHub Actions 워크플로
-
-The following workflow files exist in `.github/workflows/`.
-
-다음 워크플로 파일들이 `.github/workflows/`에 존재합니다.
-
-| File | Purpose |
-|---|---|
-| `01_branch-to-pr.yml` | Creates or manages pull requests from branches. |
-| `02_issue-to-branch.yml` | Creates branches from issues or issue-driven automation. |
-| `03_pr-checks.yml` | Pull request validation checks. |
-| `04_actionlint.yml` | Lints GitHub Actions workflow syntax. |
-| `05_gitleaks.yml` | Secret scanning with Gitleaks. |
-| `06_codeql.yml` | CodeQL security analysis. |
-| `07_dependency-review.yml` | Dependency review for pull requests. |
-| `08_scorecard.yml` | OpenSSF Scorecard security posture checks. |
-| `09_semantic-pr.yml` | Semantic pull request title validation. |
-| `10_pr-review.yml` | Automated pull request review. |
-| `11_security-pr-review.yml` | Security-focused pull request review. |
-| `12_dependabot-auto-merge.yml` | Dependabot auto-merge automation. |
-| `13_pr-auto-merge.yml` | Pull request auto-merge automation. |
-| `14_bot-auto-fix.yml` | Bot-driven automated fixes. |
-| `15_merged-pr-cleanup.yml` | Cleanup after pull requests are merged. |
-| `19_issue-backfill.yml` | Issue metadata or content backfill automation. |
-| `20_readme-gen.yml` | README generation automation. |
-| `21_docs-sync.yml` | Documentation synchronization. |
-| `24_release-notes.yml` | Release notes generation. |
-| `25_release-publish.yml` | Release publishing automation. |
-| `29_downstream-health-check.yml` | Downstream health checks. |
-| `37_ci-failure-issues.yml` | Creates or updates issues for CI failures. |
-| `42_reusable-docs-sync.yml` | Reusable documentation sync workflow. |
-| `44_reusable-pr-checks.yml` | Reusable pull request checks workflow. |
-| `45_reusable-gitleaks.yml` | Reusable Gitleaks workflow. |
-| `60_ci-auto-heal.yml` | CI self-healing automation. |
-| `91_issue-classification.yml` | Issue classification automation. |
-| `ci.yml` | Main CI workflow. |
-| `worker-deploy.yml` | Cloudflare Worker deployment workflow. |
-
-### Automation-related services and tools / 자동화 관련 서비스 및 도구
-
-| Tool or service | Usage |
-|---|---|
-| GitHub Actions | CI/CD, security checks, documentation automation, releases, issue automation |
-| CodeQL | Static application security testing |
-| Gitleaks | Secret detection |
-| OpenSSF Scorecard | Repository security posture checks |
-| Dependency Review | Pull request dependency risk review |
-| Actionlint | GitHub Actions workflow linting |
-| Dependabot | Dependency update automation and auto-merge integration |
-| Qodo PR Agent | Pull request review support via [qodo-ai/pr-agent](https://github.com/qodo-ai/pr-agent) |
-| CLIProxy API | Model/API gateway endpoint at [cliproxy.jclee.me](https://cliproxy.jclee.me) |
-| Bot service | Automation endpoint at [bot.jclee.me](https://bot.jclee.me) |
-| Cloudflare Workers | TypeScript Worker runtime for the `worker/` project |
-| uv | Python dependency and virtual environment management |
-| Ruff | Python lint configuration in `pyproject.toml` |
-| basedpyright | Python type checking configuration in `pyproject.toml` |
-| Appium | Optional Android automation backend |
-| Selenium | Optional browser/device automation dependency |
-| PaddleOCR / PaddlePaddle | Optional OCR stack for screen recognition |
-| Pillow / NumPy / SciPy | Image processing and numeric utilities |
-| PyYAML | Calibration/configuration file parsing |
-| Beautiful Soup | HTML parsing for scraping |
-| httpx | HTTP client |
-| python-dotenv | Environment variable loading |
-
-### Go automation tools / Go 자동화 도구
-
-There are no Go automation tools in this repository.
-
-이 저장소에는 Go 자동화 도구가 없습니다.
+---
 
 ## Repository Structure / 저장소 구조
 
-```text
-/
-├── CONTRIBUTING.md
+```
+.
+├── auth.py                       # Authentication helper
+├── claim_api.py                  # Daily-claim HTTP client
+├── main.py                       # CLI entry point
+├── notifier.py                   # Notification helper
+├── redeemer.py                   # Code redemption flow
+├── scraper.py                    # Promo code scraper
+├── store.py                      # Local persistent state
+├── pyproject.toml                # Project metadata & deps (uv-managed)
+├── uv.lock                       # uv dependency lock
 ├── LICENSE
-├── README.md
-├── auth.py
-├── claim_api.py
-├── main.py
-├── notifier.py
-├── pyproject.toml
-├── redeemer.py
-├── scraper.py
-├── store.py
-├── uv.lock
-├── video1.png
-├── worker/
+├── CONTRIBUTING.md
+├── README.md                     # ← this file
+│
+├── worker/                       # Cloudflare Worker API
 │   ├── README.md
-│   ├── package-lock.json
 │   ├── package.json
+│   ├── package-lock.json
 │   ├── tsconfig.json
 │   ├── wrangler.jsonc
 │   └── src/
 │       └── index.ts
-└── idle_outpost_bot/
+│
+└── idle_outpost_bot/             # Optional Android automation package
+    ├── README.md
     ├── AD_REWARDS.md
     ├── API_RESEARCH.md
     ├── AUTOMATION_TARGETS.md
     ├── CALIBRATION_FULL.md
     ├── JADX_FULL_INVENTORY.md
-    ├── README.md
     ├── __init__.py
-    ├── __main__.py
+    ├── __main__.py               # python -m idle_outpost_bot
     ├── actions.py
     ├── auto_calibrate.py
     ├── calibrate.py
@@ -240,341 +196,199 @@ There are no Go automation tools in this repository.
     ├── settings.py
     ├── state.py
     ├── vision.py
-    └── calibration/
-        ├── after_cards.ocr.yaml
-        ├── after_cards.png
-        ├── after_quest.ocr.yaml
-        ├── after_quest.png
-        ├── after_tasks.ocr.yaml
-        ├── after_tasks.png
-        ├── back_close.ocr.yaml
-        ├── back_close.png
-        ├── back_from_cards.ocr.yaml
-        ├── back_from_cards.png
-        ├── calendar.ocr.yaml
-        ├── calendar.png
-        ├── calendar.yaml
-        ├── cards.ocr.yaml
-        ├── cards.png
-        ├── check_screen.ocr.yaml
-        ├── check_screen.png
-        ├── clean_main.ocr.yaml
-        ├── clean_main.png
-        ├── closed2.ocr.yaml
-        ├── closed2.png
-        ├── closed_check.ocr.yaml
-        ├── closed_check.png
-        ├── fresh_main.ocr.yaml
-        ├── fresh_main.png
-        ├── game_ready.ocr.yaml
-        ├── game_ready.png
-        ├── inbox.ocr.yaml
-        ├── inbox.png
-        ├── main.png
+    └── calibration/              # OCR reference assets (50+ PNG/YAML pairs)
         ├── main_screen.ocr.yaml
         ├── main_screen.png
-        ├── main_screen.yaml
-        ├── mainscreen_check.ocr.yaml
-        ├── mainscreen_check.png
-        ├── p2_ad_tv.png
-        ├── p2_enter_fight.png
-        ├── p2_enter_trade.png
-        ├── p2_event_banner.png
-        ├── p2_pass.png
-        ├── p2_right_event.png
-        ├── p2_trophy.png
-        ├── probe_ad_tv.png
-        ├── probe_calendar.png
-        ├── probe_cards.png
-        ├── probe_inbox.png
-        ├── probe_quest_board.png
-        ├── probe_tasks.png
-        ├── probe_wheel.png
+        ├── calendar.ocr.yaml
+        ├── calendar.png
+        ├── cards.ocr.yaml
+        ├── cards.png
         ├── quest_board.ocr.yaml
         ├── quest_board.png
-        ├── restart_check.ocr.yaml
-        ├── restart_check.png
-        ├── swipe_test.ocr.yaml
-        └── swipe_test.png
+        ├── probe_*.png
+        ├── p2_*.png
+        └── ... (calibration data for screens, probes, and P2 events)
 ```
+
+---
+
+## Automation Inventory / 자동화 목록
+
+### GitHub Actions workflows / GitHub Actions 워크플로우 (17)
+
+| # | Workflow file | Purpose / 목적 |
+|---|---|---|
+| 01 | `01_branch-to-pr.yml` | Converts a feature branch into a pull request. 기능 브랜치를 PR로 변환합니다. |
+| 02 | `02_issue-to-branch.yml` | Creates a branch from an issue, wiring the issue into development. 이슈에서 브랜치를 생성하고 개발 흐름과 연결합니다. |
+| 10 | `10_pr-review.yml` | Automated PR review (uses [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)). 자동 PR 리뷰를 수행합니다. |
+| 11 | `11_security-pr-review.yml` | Security-focused PR review. 보안 관점의 PR 리뷰를 수행합니다. |
+| 12 | `12_dependabot-auto-merge.yml` | Auto-merges trusted Dependabot PRs. 신뢰 가능한 Dependabot PR을 자동 머지합니다. |
+| 13 | `13_pr-auto-merge.yml` | Auto-merges PRs that pass review checks. 리뷰 체크를 통과한 PR을 자동 머지합니다. |
+| 14 | `14_bot-auto-fix.yml` | Bot-driven automatic fixes for routine issues. 일상적인 이슈에 대해 봇이 자동 수정합니다. |
+| 15 | `15_merged-pr-cleanup.yml` | Cleans up branches and labels after merge. 머지 후 브랜치와 라벨을 정리합니다. |
+| 19 | `19_issue-backfill.yml` | Backfills missing issue metadata. 누락된 이슈 메타데이터를 백필합니다. |
+| 24 | `24_release-notes.yml` | Generates release notes. 릴리스 노트를 자동 생성합니다. |
+| 25 | `25_release-publish.yml` | Publishes the release. 릴리스를 게시합니다. |
+| 29 | `29_downstream-health-check.yml` | Verifies the downstream public endpoint ([`https://cliproxy.jclee.me/v1`](https://cliproxy.jclee.me)) is healthy after release. 릴리스 후 다운스트림 공개 엔드포인트 헬스 상태를 확인합니다. |
+| 37 | `37_ci-failure-issues.yml` | Opens an issue automatically when CI fails. CI 실패 시 자동으로 이슈를 생성합니다. |
+| 60 | `60_ci-auto-heal.yml` | Attempts to self-heal CI failures. CI 실패를 자가 복구합니다. |
+| 91 | `91_issue-classification.yml` | Classifies incoming issues into labels/owners. 들어오는 이슈를 라벨/담당자별로 분류합니다. |
+| — | `ci.yml` | Core continuous-integration pipeline. 핵심 CI 파이프라인입니다. |
+| — | `worker-deploy.yml` | Deploys `worker/` to Cloudflare via `wrangler.jsonc`. `worker/`를 `wrangler.jsonc`로 Cloudflare에 배포합니다. |
+
+### Go automation tools / Go 자동화 도구 (0)
+
+This repository currently ships **no Go-based automation tools**. All automation lives in `.github/workflows/` and in the Python + TypeScript code itself.
+
+현재 이 저장소는 Go 기반 자동화 도구를 포함하지 않습니다. 모든 자동화는 `.github/workflows/`와 Python + TypeScript 코드 자체에 있습니다.
+
+---
 
 ## Quick Start / 빠른 시작
 
-### Prerequisites / 사전 요구 사항
+### Prerequisites / 사전 요구사항
 
-- Python 3.11 or later
-- `uv` for Python dependency management
-- Node.js and npm for the `worker/` project
-- Optional: Appium server and Android device/emulator for `idle_outpost_bot`
-- Optional: OCR runtime dependencies for bot features
+- Python **3.11+**
+- [`uv`](https://github.com/astral-sh/uv) for dependency management (lockfile is `uv.lock`)
+- Node.js + `wrangler` (only required if you plan to develop the Cloudflare Worker in `worker/`)
+- An Android device + Appium server (only required for `idle_outpost_bot/`)
 
-### Install Python dependencies / Python 의존성 설치
+### Clone & install / 클론 및 설치
 
 ```bash
+git clone <your-fork-url>.git idle-outpost-codes
+cd idle-outpost-codes
+
+# Core CLI (scraper / redeemer / claim)
 uv sync
-```
 
-Optional bot dependencies:
-
-```bash
+# Optional: Android bot extras (Appium, Selenium, PaddleOCR, PaddlePaddle, Pillow, numpy, pyyaml)
 uv sync --extra bot
 ```
 
-### Run the main CLI / 메인 CLI 실행
+### Configure / 설정
+
+Create a `.env` file with credentials required by `auth.py` / `claim_api.py` / `notifier.py` (refer to module docstrings and `idle_outpost_bot/settings.py` for the exact variable names).
+
+`auth.py` / `claim_api.py` / `notifier.py`에서 요구하는 자격 증명을 `.env` 파일에 작성하세요. 정확한 변수명은 각 모듈의 docstring과 `idle_outpost_bot/settings.py`를 참고하세요.
+
+### Run the CLI / CLI 실행
 
 ```bash
-uv run python main.py
+uv run python main.py --help
+uv run python main.py scrape
+uv run python main.py redeem --code YOUR-CODE
+uv run python main.py claim
 ```
 
-### Run the Android automation bot / Android 자동화 봇 실행
+### Run the Android bot / Android 봇 실행
 
 ```bash
-uv run python -m idle_outpost_bot
+uv run python -m idle_outpost_bot --help
+uv run python -m idle_outpost_bot run
 ```
 
-### Install Worker dependencies / Worker 의존성 설치
+### Run the Worker locally / Worker 로컬 실행
 
 ```bash
 cd worker
 npm install
+npx wrangler dev
 ```
 
-### Run Worker locally / Worker 로컬 실행
-
-```bash
-cd worker
-npm run dev
-```
-
-### Deploy Worker / Worker 배포
-
-```bash
-cd worker
-npm run deploy
-```
-
-Deployment is also automated by `worker-deploy.yml`.
-
-배포는 `worker-deploy.yml` 워크플로를 통해서도 자동화됩니다.
+---
 
 ## Local Development / 로컬 개발
 
-### Python environment / Python 환경
+### Tooling / 도구
 
-This project is configured through `pyproject.toml`.
+- **Python 3.11+** with `uv` (see `pyproject.toml` / `uv.lock`).
+- **Linting & formatting**: `ruff` is configured in `pyproject.toml` (`line-length = 100`, `target-version = "py311"`).
+- **Type checking**: `basedpyright` is configured against the local `.venv`.
+- **CI**: `ci.yml` plus the auto-healing `60_ci-auto-heal.yml` workflow.
+- **Model provider for in-repo assistants**: CLIProxyAPI at `<homelab-host>:8317`, with the public mirror at [`https://cliproxy.jclee.me/v1`](https://cliproxy.jclee.me). Primary model `gpt-5.5`, fallback `minimax-m3`.
 
-이 프로젝트는 `pyproject.toml`로 구성됩니다.
+### Recommended workflow / 권장 워크플로
 
-Project metadata:
-
-- Package name: `idle-outpost-codes`
-- Version: `0.1.0`
-- Python: `>=3.11`
-- Main dependencies:
-  - `beautifulsoup4`
-  - `httpx`
-  - `python-dotenv`
-  - `scipy`
-
-Optional bot dependencies:
-
-- `Appium-Python-Client`
-- `selenium`
-- `paddleocr`
-- `paddlepaddle`
-- `Pillow`
-- `numpy`
-- `pyyaml`
-
-### Recommended setup / 권장 설정
-
-```bash
-uv sync --extra bot
-```
-
-If you do not need Android bot functionality:
-
-```bash
-uv sync
-```
-
-### Environment variables / 환경 변수
-
-The project uses `python-dotenv`, so local environment variables can be loaded from a `.env` file when supported by the scripts.
-
-프로젝트는 `python-dotenv`를 사용하므로, 스크립트에서 지원하는 경우 `.env` 파일을 통해 로컬 환경 변수를 로드할 수 있습니다.
-
-Recommended practice:
-
-```bash
-cp .env.example .env
-```
-
-If `.env.example` does not exist, create `.env` manually and keep secrets out of Git.
-
-`.env.example`이 없는 경우 `.env`를 직접 만들고, 비밀 값은 Git에 커밋하지 마세요.
-
-### Linting and type checking / 린트 및 타입 검사
-
-Ruff and basedpyright are configured in `pyproject.toml`.
-
-`pyproject.toml`에는 Ruff와 basedpyright 설정이 포함되어 있습니다.
-
-```bash
-uv run ruff check .
-uv run basedpyright
-```
+1. Create a feature branch: `git checkout -b feat/my-change`.
+2. Push the branch — `01_branch-to-pr.yml` will help you open a PR.
+3. Wait for `10_pr-review.yml` and `11_security-pr-review.yml` (backed by [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)).
+4. After approval, `13_pr-auto-merge.yml` will merge automatically when checks pass.
+5. `15_merged-pr-cleanup.yml` cleans up the branch.
+6. `24_release-notes.yml` and `25_release-publish.yml` cut the release.
+7. `29_downstream-health-check.yml` verifies the public endpoint after release.
+8. The Worker is redeployed by `worker-deploy.yml` if the change touched `worker/`.
 
 ### Worker development / Worker 개발
 
-```bash
-cd worker
-npm install
-npm run dev
-```
+The `worker/` package uses TypeScript and Cloudflare Workers. Configuration is in `wrangler.jsonc`; entry point is `src/index.ts`. See [`worker/README.md`](worker/README.md) for details.
 
-Check `worker/package.json` for the exact available npm scripts.
+`worker/` 패키지는 TypeScript와 Cloudflare Workers를 사용합니다. 설정은 `wrangler.jsonc`에, 진입점은 `src/index.ts`에 있습니다. 자세한 내용은 [`worker/README.md`](worker/README.md)를 참고하세요.
 
-사용 가능한 정확한 npm 스크립트는 `worker/package.json`을 확인하세요.
+### Android bot calibration / Android 봇 보정
+
+Reference screens are stored under `idle_outpost_bot/calibration/` as `.png` + matching `.ocr.yaml` pairs (50+ screens including main_screen, calendar, cards, quest_board, inbox, closed_check, etc.). Use `idle_outpost_bot/auto_calibrate.py` and `calibrate.py` to refresh these against a live device. See `idle_outpost_bot/CALIBRATION_FULL.md` for the full procedure.
+
+기준 화면은 `idle_outpost_bot/calibration/` 하위에 `.png`와 `.ocr.yaml` 쌍으로 저장되어 있습니다(main_screen, calendar, cards, quest_board, inbox, closed_check 등 50개 이상). `idle_outpost_bot/auto_calibrate.py`와 `calibrate.py`를 사용해 실제 디바이스에 맞춰 갱신할 수 있습니다. 자세한 절차는 `idle_outpost_bot/CALIBRATION_FULL.md`를 참고하세요.
+
+---
 
 ## Commands Reference / 명령어 참조
 
-### Python commands / Python 명령어
-
-| Command | Description |
+| Command | Description / 설명 |
 |---|---|
-| `uv sync` | Install core Python dependencies. |
-| `uv sync --extra bot` | Install core and optional Android bot dependencies. |
-| `uv run python main.py` | Run the main automation CLI. |
-| `uv run python -m idle_outpost_bot` | Run the Android automation bot package entry point. |
-| `uv run ruff check .` | Run Ruff lint checks. |
-| `uv run basedpyright` | Run basedpyright type checking. |
+| `uv sync` | Install core dependencies. 핵심 의존성을 설치합니다. |
+| `uv sync --extra bot` | Also install Android bot extras (Appium, Selenium, PaddleOCR, …). Android 봇 추가 의존성도 함께 설치합니다. |
+| `uv run python main.py --help` | Show top-level CLI help. 최상위 CLI 도움말을 표시합니다. |
+| `uv run python main.py scrape` | Run the promo-code scraper. 프로모션 코드 스크래퍼를 실행합니다. |
+| `uv run python main.py redeem --code <CODE>` | Redeem a specific code. 특정 코드를 수령합니다. |
+| `uv run python main.py claim` | Trigger the daily-claim flow. 일일 보상 수령 플로우를 실행합니다. |
+| `uv run python -m idle_outpost_bot` | Run the Android bot package. Android 봇 패키지를 실행합니다. |
+| `uv run python -m idle_outpost_bot run` | Start the bot loop. 봇 루프를 시작합니다. |
+| `uv run python -m idle_outpost_bot calibrate` | Refresh calibration assets. 보정 자산을 갱신합니다. |
+| `uv run python -m idle_outpost_bot auto-calibrate` | Auto-calibrate against a live device. 실제 디바이스에 대해 자동 보정을 수행합니다. |
+| `uv run ruff check .` | Lint with `ruff`. `ruff`로 린트를 실행합니다. |
+| `uv run ruff format .` | Format with `ruff`. `ruff`로 포맷을 적용합니다. |
+| `uv run basedpyright` | Type-check with `basedpyright`. `basedpyright`로 타입 검사를 수행합니다. |
+| `cd worker && npm install` | Install Worker dependencies. Worker 의존성을 설치합니다. |
+| `cd worker && npx wrangler dev` | Run the Worker locally. Worker를 로컬에서 실행합니다. |
+| `cd worker && npx wrangler deploy` | Deploy the Worker (also triggered by `worker-deploy.yml`). Worker를 배포합니다(`worker-deploy.yml`도 트리거). |
 
-### Worker commands / Worker 명령어
+---
 
-Run from the `worker/` directory.
+## Contributing / 기여 가이드
 
-`worker/` 디렉터리에서 실행하세요.
+Contributions are welcome. Please read [`CONTRIBUTING.md`](CONTRIBUTING.md) before opening an issue or PR. At a glance:
 
-| Command | Description |
-|---|---|
-| `npm install` | Install Worker dependencies. |
-| `npm run dev` | Start local Worker development server if defined in `package.json`. |
-| `npm run deploy` | Deploy the Worker if defined in `package.json`. |
+기여를 환영합니다. 이슈나 PR을 열기 전에 [`CONTRIBUTING.md`](CONTRIBUTING.md)를 먼저 읽어 주세요. 요약하면 다음과 같습니다.
 
-### GitHub automation commands / GitHub 자동화 관련 작업
+1. **Search before opening / 먼저 검색** — Check existing issues and PRs to avoid duplicates. 중복을 피하기 위해 기존 이슈/PR을 먼저 확인하세요.
+2. **File an issue / 이슈 등록** — Use the templates. The `91_issue-classification.yml` workflow will auto-label and route it. 템플릿을 사용하세요. `91_issue-classification.yml` 워크플로우가 자동으로 라벨을 붙이고 라우팅합니다.
+3. **Open a PR / PR 열기** — Push your branch; `01_branch-to-pr.yml` will help you convert it to a PR. 브랜치를 푸시하면 `01_branch-to-pr.yml`이 PR로 변환을 도와줍니다.
+4. **Pass automated checks / 자동 검사 통과** — `ci.yml`, `10_pr-review.yml`, and `11_security-pr-review.yml` must be green. `ci.yml`, `10_pr-review.yml`, `11_security-pr-review.yml`이 모두 통과해야 합니다.
+5. **Wait for auto-merge / 자동 머지 대기** — Once checks pass, `13_pr-auto-merge.yml` will merge eligible PRs. 검사를 통과하면 `13_pr-auto-merge.yml`이 머지 가능한 PR을 자동 머지합니다.
+6. **Release / 릴리스** — Releases are produced automatically by `24_release-notes.yml` and `25_release-publish.yml`, then verified by `29_downstream-health-check.yml`. 릴리스는 `24_release-notes.yml`과 `25_release-publish.yml`이 자동 생성하며, 이후 `29_downstream-health-check.yml`이 검증합니다.
 
-Most repository automation is event-driven and runs through GitHub Actions.
+### Code style / 코드 스타일
 
-대부분의 저장소 자동화는 이벤트 기반이며 GitHub Actions를 통해 실행됩니다.
+- Python: follow `ruff` configuration in `pyproject.toml` (line length 100, Python 3.11).
+- TypeScript (Worker): follow the configuration in `worker/tsconfig.json`.
+- Keep commits focused and write meaningful messages — they feed `24_release-notes.yml`.
 
-Common triggers include:
-
-- Pull request opened or updated
-- Issue opened or labeled
-- Push to branch
-- Merge completion
-- Scheduled security or health checks
-- Release creation or publication
-- Worker deployment events
-
-## Security / 보안
-
-Security automation includes:
-
-- Secret scanning with `05_gitleaks.yml`
-- Code scanning with `06_codeql.yml`
-- Dependency review with `07_dependency-review.yml`
-- Repository security posture checks with `08_scorecard.yml`
-- Security-focused PR review with `11_security-pr-review.yml`
-
-보안 자동화에는 다음이 포함됩니다.
-
-- `05_gitleaks.yml`를 통한 시크릿 스캔
-- `06_codeql.yml`를 통한 코드 스캔
-- `07_dependency-review.yml`를 통한 의존성 검토
-- `08_scorecard.yml`를 통한 저장소 보안 상태 점검
-- `11_security-pr-review.yml`를 통한 보안 중심 PR 리뷰
-
-Do not commit:
-
-- API keys
-- Tokens
-- Session cookies
-- Device credentials
-- Internal hostnames that should remain private
-- Private network addresses
-- Emulator/device secrets
-
-다음 항목은 커밋하지 마세요.
-
-- API 키
-- 토큰
-- 세션 쿠키
-- 디바이스 인증 정보
-- 비공개 내부 호스트명
-- 사설 네트워크 주소
-- 에뮬레이터 또는 디바이스 관련 비밀 값
-
-## Documentation Automation / 문서 자동화
-
-README and documentation workflows include:
-
-- `20_readme-gen.yml`
-- `21_docs-sync.yml`
-- `42_reusable-docs-sync.yml`
-
-The primary README generation model is `gpt-5.5`, with fallback to `minimax-m3` through CLIProxyAPI.
-
-README 생성의 기본 모델은 `gpt-5.5`이며, CLIProxyAPI를 통해 `minimax-m3`가 대체 모델로 사용됩니다.
-
-Public API endpoint:
-
-- [https://cliproxy.jclee.me/v1](https://cliproxy.jclee.me/v1)
-
-## Contribution Guide / 기여 가이드
-
-Contributions are welcome.
-
-기여를 환영합니다.
-
-Before contributing:
-
-1. Read `CONTRIBUTING.md`.
-2. Create a focused branch for your change.
-3. Keep changes small and reviewable.
-4. Run local checks before opening a pull request.
-5. Do not commit secrets or private environment details.
-6. Update documentation when behavior changes.
-7. Use clear pull request titles compatible with `09_semantic-pr.yml`.
-
-기여 전 확인 사항:
-
-1. `CONTRIBUTING.md`를 읽어 주세요.
-2. 변경 사항에 맞는 전용 브랜치를 생성하세요.
-3. 변경 범위를 작고 리뷰하기 쉽게 유지하세요.
-4. Pull Request를 열기 전에 로컬 검사를 실행하세요.
-5. 시크릿 또는 비공개 환경 정보를 커밋하지 마세요.
-6. 동작이 변경되면 문서를 함께 업데이트하세요.
-7. `09_semantic-pr.yml`와 호환되는 명확한 Pull Request 제목을 사용하세요.
-
-### Suggested development flow / 권장 개발 흐름
-
-```bash
-git checkout -b feature/my-change
-uv sync --extra bot
-uv run ruff check .
-uv run basedpyright
-git add .
-git commit -m "feat: describe my change"
-```
-
-Then open a pull request.
-
-이후 Pull Request를 생성하세요.
+---
 
 ## License / 라이선스
 
-This project is licensed under the terms in [LICENSE](LICENSE).
+See [`LICENSE`](LICENSE).
 
-이 프로젝트는 [LICENSE](LICENSE)에 명시된 조건에 따라 라이선스가 부여됩니다.
+[`LICENSE`](LICENSE) 파일을 참고하세요.
+
+---
+
+## Links / 관련 링크
+
+- PR review engine: [`qodo-ai/pr-agent`](https://github.com/qodo-ai/pr-agent)
+- Public model endpoint: [`https://cliproxy.jclee.me/v1`](https://cliproxy.jclee.me)
+- Cloudflare Worker API: [`https://bot.jclee.me`](https://bot.jclee.me)
+- Worker source: [`worker/src/index.ts`](worker/src/index.ts)
+- Bot package entry: [`idle_outpost_bot/__main__.py`](idle_outpost_bot/__main__.py)
