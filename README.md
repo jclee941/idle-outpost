@@ -18,7 +18,7 @@ A monorepo of automation tools for the mobile game *Idle Outpost*. It scrapes th
 - [Quick Start / 빠른 시작](#quick-start--빠른-시작)
 - [Configuration / 설정](#configuration--설정)
 - [Commands Reference / 명령어 레퍼런스](#commands-reference--명령어-레퍼런스)
-- [Components / 컴포넌트별 설명](#components--컴포넌트별-설명)
+- [Python Pipeline / 파이썬 파이프라인](#python-pipeline--파이썬-파이프라인)
 - [Android Bot / 안드로이드 봇](#android-bot--안드로이드-봇)
 - [Cloudflare Worker](#cloudflare-worker)
 - [Local Development / 로컬 개발](#local-development--로컬-개발)
@@ -35,103 +35,102 @@ A monorepo of automation tools for the mobile game *Idle Outpost*. It scrapes th
 **EN** — The repository contains three loosely coupled Python pipelines plus an Android UI bot and an optional Cloudflare Worker. They share a single persistence layer (`store.py`) and a single outbound notifier (`notifier.py`), so each stage is idempotent and restart-safe.
 
 - **Promo monitor** — `scraper.py` discovers new codes from configured web sources via `httpx` + BeautifulSoup and deduplicates them through `store.py`.
-- **Code redeemer** — `redeemer.py`, with a session bootstrapped by `auth.py`, POSTs unclaimed codes to the game's `/redeem` endpoint.
-- **Daily claim** — `claim_api.py` posts the daily reward request and records the result.
-- **Notifier** — `notifier.py` pushes status to Discord / Slack / generic webhook URLs.
-- **Android bot** — `idle_outpost_bot/` drives the game UI on a connected device through Appium and PaddleOCR; runtime guards live in `safety.py`.
-- **Edge scheduler** — `worker/src/index.ts` runs on Cloudflare Workers and periodically hits your `main.py` orchestrator.
+- **Code redeemer** — `redeemer.py`, with a session bootstrapped by `auth.py`, POSTs each un-redeemed code to the official game API.
+- **Daily reward claim** — `claim_api.py` triggers the daily reward endpoint once per UTC day.
+- **Notifier** — `notifier.py` posts human-readable status messages to a configured webhook (e.g. Discord, Slack, generic webhook).
+- **Entry point** — `main.py` wires the pieces into a single CLI that can run any stage on demand.
+- **Android bot (optional)** — `idle_outpost_bot/` is a separate package with its own driver, OCR vision, calibration assets, and action loop. It is *not* required for the web/API pipeline.
+- **Cloudflare Worker (optional)** — `worker/` triggers the daily job from the edge via a cron trigger.
 
-**KR** — 이 저장소는 세 개의 느슨하게 결합된 파이썬 파이프라인과 안드로이드 UI 봇, 그리고 Cloudflare Worker로 구성됩니다. 모든 단계는 동일한 영속 계층(`store.py`)과 알림 채널(`notifier.py`)을 공유하므로 멱등(idempotent)하고 재시작 안전합니다.
+**KR** — 이 저장소는 세 개의 느슨하게 결합된 파이썬 파이프라인과 안드로이드 UI 봇, 그리고 선택 가능한 Cloudflare Worker로 구성됩니다. 모든 단계는 단일 영속 계층(`store.py`)과 단일 송신 notifier(`notifier.py`)를 공유하므로 멱등(idempotent)이며 재시작 안전합니다.
 
-- **프로모 모니터** — `scraper.py`가 `httpx` + BeautifulSoup으로 웹 소스를 훑어 새 코드를 찾고, `store.py`로 중복을 제거합니다.
-- **코드 리디머** — `redeemer.py`가 `auth.py`로 만든 세션으로 게임의 `/redeem` 엔드포인트에 코드를 등록합니다.
-- **데일리 클레임** — `claim_api.py`가 일일 보상 요청을 보내고 결과를 기록합니다.
-- **알림** — `notifier.py`가 Discord / Slack / 일반 웹훅으로 상태를 전송합니다.
-- **안드로이드 봇** — `idle_outpost_bot/`이 Appium과 PaddleOCR로 게임 UI를 자동 조작하고, `safety.py`가 런타임 가드를 적용합니다.
-- **엣지 스케줄러** — `worker/src/index.ts`가 Cloudflare Workers에서 주기적으로 `main.py`를 깨웁니다.
+- **프로모 모니터** — `scraper.py`가 설정된 웹 소스에서 `httpx` + BeautifulSoup로 새 코드를 수집하고 `store.py`로 중복을 제거합니다.
+- **코드 등록기** — `redeemer.py`는 `auth.py`로 부트스트랩된 세션으로 등록되지 않은 코드를 공식 게임 API에 POST 합니다.
+- **일일 보상 클레임** — `claim_api.py`는 UTC 기준 하루에 한 번 일일 보상 엔드포인트를 호출합니다.
+- **Notifier** — `notifier.py`는 사람이 읽을 수 있는 상태 메시지를 설정된 웹훅(Discord, Slack, 범용 웹훅 등)으로 보냅니다.
+- **엔트리 포인트** — `main.py`는 위 모든 단계를 하나의 CLI로 묶어 요청 시 실행합니다.
+- **안드로이드 봇(선택)** — `idle_outpost_bot/`은 자체 드라이버, OCR 비전, 캘리브레이션 자산, 액션 루프를 가진 별도 패키지입니다. 웹/API 파이프라인에는 필요하지 않습니다.
+- **Cloudflare Worker(선택)** — `worker/`는 cron 트리거를 통해 엣지에서 일일 작업을 트리거합니다.
 
 ---
 
 ## Features / 주요 기능
 
-### EN
-- **End-to-end promo pipeline** — scrape → store → redeem → notify, restart-safe at every stage.
-- **Idempotent state store** — every seen code, every redeemed attempt, every daily claim is recorded so re-runs are no-ops.
-- **Pluggable sources** — add new scraper sources by dropping modules next to `scraper.py`.
-- **Multi-channel notifications** — webhook URLs for Discord, Slack, or any JSON-accepting endpoint.
-- **Edge scheduling** — Cloudflare Worker triggers the orchestrator on a cron-like schedule without a long-running server.
-- **Android UI bot** — Appium driver + PaddleOCR with screen-state calibration data in `idle_outpost_bot/calibration/`.
-- **Safety guards** — `safety.py` enforces cooldowns, screen-state checks, and stop-on-mismatch to avoid wasted taps.
-- **Bilingual UX** — Korean translations shipped in `idle_outpost_bot/i18n_ko.properties`; CLI messages support `LANG` switches.
+**EN**
 
-### KR
-- **엔드투엔드 프로모 파이프라인** — 스크랩 → 저장 → 등록 → 알림. 모든 단계가 재시작에 안전합니다.
-- **멱등 상태 저장소** — 본 모든 코드, 모든 등록 시도, 모든 일일 클레임이 기록되어 재실행은 무해합니다.
-- **확장 가능한 소스** — `scraper.py` 옆에 모듈을 추가하여 새 스크랩 소스를 연결할 수 있습니다.
-- **멀티채널 알림** — Discord, Slack, JSON 웹훅 URL을 모두 지원합니다.
-- **엣지 스케줄링** — Cloudflare Worker가 상시 서버 없이 cron 수준으로 오케스트레이터를 깨웁니다.
-- **안드로이드 UI 봇** — Appium 드라이버 + PaddleOCR. 캘리브레이션 데이터는 `idle_outpost_bot/calibration/`에 포함됩니다.
-- **안전 가드** — `safety.py`가 쿨다운, 화면 상태 체크, 불일치 시 정지를 강제합니다.
-- **이중 언어 UX** — `idle_outpost_bot/i18n_ko.properties`로 한국어 번역 제공. CLI 메시지도 `LANG`로 전환됩니다.
+- 🔍 **Web scraping for promo codes** — pluggable source list, HTML parsing with BeautifulSoup, stable hashing for dedupe.
+- 🔐 **Authenticated HTTP client** — login, refresh, and per-request session handling in `auth.py`.
+- 🎁 **Code redemption** — batch-redeems every pending code, marks each `success` / `expired` / `already-used` / `error` in the store.
+- 📅 **Daily reward claim** — once-per-UTC-day guard, idempotent.
+- 🗃 **SQLite-backed store** — single source of truth for codes, claims, and run history.
+- 🔔 **Pluggable notifications** — Discord / Slack / generic webhook via env-driven config.
+- 📱 **Android bot (optional)** — Appium + PaddleOCR, YAML-driven calibration, screen-state machine, Korean (`i18n_ko.properties`) localization.
+- ☁️ **Edge scheduling (optional)** — Cloudflare Worker triggers the CLI from a cron schedule.
+
+**KR**
+
+- 🔍 **프로모 코드 웹 스크래핑** — 플러그 가능한 소스 목록, BeautifulSoup 기반 HTML 파싱, 안정적 해시로 중복 제거.
+- 🔐 **인증 HTTP 클라이언트** — `auth.py`에서 로그인·갱신·요청별 세션 처리.
+- 🎁 **코드 등록** — 보류 중인 모든 코드를 일괄 등록하고 각 결과를 `success` / `expired` / `already-used` / `error`로 기록.
+- 📅 **일일 보상 클레임** — UTC 기준 하루 한 번 가드, 멱등성 보장.
+- 🗃 **SQLite 기반 저장소** — 코드·클레임·실행 기록의 단일 진실 공급원.
+- 🔔 **플러그 가능한 알림** — 환경변수로 Discord / Slack / 범용 웹훅 지원.
+- 📱 **안드로이드 봇(선택)** — Appium + PaddleOCR, YAML 기반 캘리브레이션, 화면 상태 머신, 한국어(`i18n_ko.properties`) 로컬라이제이션.
+- ☁️ **엣지 스케줄링(선택)** — Cloudflare Worker가 cron 스케줄로 CLI를 트리거.
 
 ---
 
 ## Architecture / 아키텍처
 
-The pipeline is intentionally simple: each step reads/writes `store.py` so the system can be paused and resumed at any boundary. The Android bot is fully optional and operates independently of the HTTP pipeline.
+**EN** — Two independent subsystems share the same store and notifier. The Python pipeline talks only to HTTP endpoints (the official game API + public code sources). The Android bot talks only to a connected device through Appium. The Worker is a thin cron-driven trigger.
+
+**KR** — 두 개의 독립적인 서브시스템이 동일한 store와 notifier를 공유합니다. 파이썬 파이프라인은 HTTP 엔드포인트(공식 게임 API + 공개 코드 소스)와만 통신합니다. 안드로이드 봇은 Appium을 통해 연결된 디바이스와만 통신합니다. Worker는 cron 기반의 얇은 트리거입니다.
 
 ```mermaid
 flowchart LR
-    subgraph Sources["Promo Sources"]
-        WEB["Public web<br/>(news, blogs, social)"]
-    end
+  subgraph Sources["Sources / 데이터 소스"]
+    WEB["Public web<br/>code pages"]
+    GAME["Idle Outpost<br/>HTTP API"]
+  end
 
-    subgraph Pipeline["Python pipeline (main.py)"]
-        SCRAPER["scraper.py<br/>httpx + BeautifulSoup"]
-        STORE[("store.py<br/>persistent state<br/>seen / redeemed / claimed")]
-        AUTH["auth.py<br/>session bootstrap"]
-        REDEEMER["redeemer.py<br/>POST /redeem"]
-        CLAIM["claim_api.py<br/>POST /daily_claim"]
-        NOTIFIER["notifier.py<br/>webhook out"]
-    end
+  subgraph Pipeline["Python Pipeline"]
+    SCRAPER["scraper.py<br/>httpx + BeautifulSoup"]
+    AUTH["auth.py<br/>session bootstrap"]
+    REDEEMER["redeemer.py<br/>code redemption"]
+    CLAIM["claim_api.py<br/>daily reward"]
+    MAIN["main.py<br/>CLI entry point"]
+  end
 
-    subgraph Edge["Cloudflare edge"]
-        WORKER["worker/src/index.ts<br/>scheduled trigger"]
-        CRON["Workers Cron<br/>/scheduled handler"]
-    end
+  STORE[("store.py<br/>SQLite")]
+  NOTIFY["notifier.py<br/>webhook"]
 
-    subgraph Device["Android device (optional)"]
-        BOT["idle_outpost_bot<br/>Appium driver"]
-        OCR["PaddleOCR<br/>vision.py"]
-        SAFE["safety.py<br/>cooldowns & guards"]
-    end
+  subgraph Edge["Optional / 선택"]
+    WORKER["Cloudflare Worker<br/>cron trigger"]
+  end
 
-    WEB --> SCRAPER
-    SCRAPER --> STORE
-    STORE --> REDEEMER
-    AUTH --> REDEEMER
-    REDEEMER --> STORE
-    STORE --> CLAIM
-    CLAIM --> STORE
-    STORE --> NOTIFIER
-    CRON --> WORKER
-    WORKER -->|HTTP fetch| SCRAPER
-    WORKER -->|HTTP fetch| REDEEMER
-    WORKER -->|HTTP fetch| CLAIM
-    BOT --> OCR
-    BOT --> SAFE
-    BOT -.optional backup.-> CLAIM
+  subgraph Android["Optional Android Bot / 선택"]
+    BOT["idle_outpost_bot/<br/>Appium + PaddleOCR"]
+    CAL[("calibration/*.yaml<br/>reference screens")]
+  end
+
+  WEB --> SCRAPER
+  SCRAPER --> STORE
+  STORE --> REDEEMER
+  AUTH --> REDEEMER
+  AUTH --> CLAIM
+  REDEEMER --> GAME
+  CLAIM --> GAME
+  MAIN --> SCRAPER
+  MAIN --> REDEEMER
+  MAIN --> CLAIM
+  REDEEMER --> NOTIFY
+  CLAIM --> NOTIFY
+  WORKER -.cron.-> MAIN
+  BOT --> CAL
+  BOT --> NOTIFY
+  REDEEMER --> STORE
+  CLAIM --> STORE
 ```
-
-### Data flow summary / 데이터 흐름 요약
-
-| Stage | Input | Output | Persistence |
-|---|---|---|---|
-| `scraper.py` | Source URLs | Candidate codes | `store.mark_seen()` |
-| `redeemer.py` | Unredeemed codes | API responses | `store.mark_redeemed()` |
-| `claim_api.py` | Current date / account | Reward payload | `store.mark_claimed()` |
-| `notifier.py` | Stage result | Webhook POST | — |
-| `idle_outpost_bot` | Screen captures | Tap / swipe actions | `state.py` (in-memory) |
 
 ---
 
@@ -139,428 +138,472 @@ flowchart LR
 
 ```
 .
-├── main.py                       # CLI orchestrator / entry point
-├── auth.py                       # HTTP session + auth bootstrap
-├── scraper.py                    # Promo code scraper
-├── redeemer.py                   # Code redemption against game API
-├── claim_api.py                  # Daily reward claim endpoint
-├── store.py                      # Persistence layer (seen / redeemed / claimed)
-├── notifier.py                   # Outbound webhook notifier
-├── pyproject.toml                # Project + dependency metadata
-├── uv.lock                       # uv-managed lockfile
-├── CONTRIBUTING.md
-├── LICENSE
+├── auth.py                    # HTTP session bootstrap (login/refresh)
+├── claim_api.py               # Daily reward endpoint client
+├── main.py                    # CLI entry point wiring the pipeline
+├── notifier.py                # Outbound webhook notifier
+├── redeemer.py                # Code redemption pipeline
+├── scraper.py                 # Web scraping for promo codes
+├── store.py                   # SQLite persistence layer
+├── pyproject.toml             # Project metadata + dependencies
+├── uv.lock                    # Reproducible lockfile (uv)
 │
-├── worker/                       # Cloudflare Worker (edge scheduler)
-│   ├── package.json
-│   ├── package-lock.json
-│   ├── tsconfig.json
+├── worker/                    # Cloudflare Worker (TypeScript)
+│   ├── src/index.ts
 │   ├── wrangler.jsonc
-│   ├── README.md
-│   └── src/
-│       └── index.ts              # Workers scheduled handler
+│   ├── tsconfig.json
+│   └── package.json
 │
-└── idle_outpost_bot/             # Android UI automation package
-    ├── __init__.py
-    ├── __main__.py               # `python -m idle_outpost_bot`
-    ├── actions.py                # High-level game actions
-    ├── driver.py                 # Appium session management
-    ├── vision.py                 # PaddleOCR wrappers
-    ├── loop.py                   # Main automation loop
-    ├── state.py                  # In-memory state machine
-    ├── safety.py                 # Runtime guards / cooldowns
-    ├── settings.py               # Tunables
-    ├── config_loader.py          # YAML / .env loader
-    ├── discover.py               # Element discovery helpers
-    ├── calibrate.py              # Manual calibration tool
-    ├── auto_calibrate.py         # Auto calibration driver
-    ├── notify.py                 # Bot-specific notifier
-    ├── i18n_ko.properties        # Korean UI strings
-    ├── AD_REWARDS.md
-    ├── API_RESEARCH.md
-    ├── AUTOMATION_TARGETS.md
-    ├── CALIBRATION_FULL.md
-    ├── JADX_FULL_INVENTORY.md
-    ├── README.md
-    └── calibration/              # OCR templates + reference screenshots
-        ├── *.ocr.yaml
-        ├── *.png
-        └── main.yaml             # Composite calibration descriptor
+└── idle_outpost_bot/          # Optional Android UI bot
+    ├── __main__.py            # `python -m idle_outpost_bot`
+    ├── actions.py             # Game-level actions (tap, swipe, wait)
+    ├── driver.py              # Appium driver setup
+    ├── loop.py                # State-machine loop
+    ├── vision.py              # PaddleOCR + template matching
+    ├── safety.py              # Anti-ban / safety heuristics
+    ├── settings.py            # User-tunable bot settings
+    ├── state.py               # In-memory + persisted bot state
+    ├── notify.py              # Bot-specific notifier
+    ├── calibrate.py           # Manual calibration helper
+    ├── auto_calibrate.py      # Automated calibration
+    ├── discover.py            # On-screen element discovery
+    ├── config_loader.py       # YAML config loader
+    ├── i18n_ko.properties     # Korean localization strings
+    └── calibration/           # OCR templates + reference screenshots
+        ├── main.png
+        ├── main_screen.yaml
+        ├── *.ocr.yaml         # Per-screen OCR reference data
+        └── *.png              # Reference screenshots
 ```
 
 ---
 
 ## Quick Start / 빠른 시작
 
-### 1. Requirements / 요구 사항
+### Prerequisites / 사전 요구사항
 
-- **Python** ≥ 3.11
-- **uv** (recommended) or `pip`
-- For the Android bot: a real device or emulator with USB debugging, Appium server, and `adb`
-- For edge scheduling: a Cloudflare account + `wrangler`
+**EN**
 
-### 2. Install / 설치
+- Python **3.11+**
+- [uv](https://docs.astral.sh/uv/) (recommended) or `pip`
+- A game account that can authenticate against the official HTTP API
+- For the Android bot: a connected Android device (USB or Wi-Fi ADB), Appium server, and the game installed
+- For the Worker: a Cloudflare account + `wrangler` CLI
+
+**KR**
+
+- 파이썬 **3.11 이상**
+- [uv](https://docs.astral.sh/uv/) (권장) 또는 `pip`
+- 공식 HTTP API에 인증 가능한 게임 계정
+- 안드로이드 봇용: 연결된 안드로이드 디바이스(USB 또는 Wi-Fi ADB), Appium 서버, 게임 설치
+- Worker용: Cloudflare 계정과 `wrangler` CLI
+
+### Install / 설치
 
 ```bash
-# Clone and enter the repo
+# Clone
 git clone <your-fork-url> idle-outpost-codes
 cd idle-outpost-codes
 
-# Create a virtualenv with uv (recommended)
-uv venv
-source .venv/bin/activate
+# Core pipeline (Python 3.11+, uv recommended)
+uv sync
 
-# Install core dependencies
-uv pip install -e .
-
-# Optional: install Android bot dependencies
-uv pip install -e ".[bot]"
-```
-
-If you prefer `pip`:
-
-```bash
+# Or with pip:
 python -m venv .venv
 source .venv/bin/activate
 pip install -e .
-pip install -e ".[bot]"   # optional
+
+# Android bot (optional, adds Appium + PaddleOCR + Selenium)
+uv sync --extra bot
+# or:
+pip install -e ".[bot]"
 ```
 
-### 3. Configure / 설정
+### Configure / 설정
 
-```bash
-cp .env.example .env       # create one if it does not exist
+Create a `.env` file at the repository root:
+
+```env
+# Game API credentials / 게임 API 자격증명
+IDLE_OUTPOST_BASE_URL=https://api.example.invalid
+IDLE_OUTPOST_USERNAME=your_username
+IDLE_OUTPOST_PASSWORD=your_password
+
+# Notifier (generic webhook) / 웹훅
+NOTIFY_WEBHOOK_URL=https://hooks.example.invalid/xxx
+NOTIFY_USERNAME=Idle-Outpost-Bot
+
+# Optional: persistent DB path / DB 경로 (선택)
+STORE_DB_PATH=./data/store.sqlite3
 ```
 
-See [Configuration](#configuration--설정) below for all keys.
-
-### 4. Run the pipeline / 파이프라인 실행
+### Run / 실행
 
 ```bash
-# Each stage is independently runnable
+# Scrape for new codes / 새 코드 스크래핑
 python main.py scrape
+
+# Redeem every pending code / 보류 중인 모든 코드 등록
 python main.py redeem
+
+# Claim the daily reward / 일일 보상 클레임
 python main.py claim
 
-# Or run the full pipeline
+# Full pipeline: scrape → redeem → claim
 python main.py run
-```
-
-### 5. (Optional) Run the Android bot / 안드로이드 봇 실행
-
-```bash
-# Make sure Appium server is up and a device is attached (`adb devices`)
-python -m idle_outpost_bot
-```
-
-### 6. (Optional) Deploy the edge worker / 엣지 워커 배포
-
-```bash
-cd worker
-npm install
-npx wrangler deploy
 ```
 
 ---
 
 ## Configuration / 설정
 
-All runtime configuration is read from environment variables (a `.env` file is honored via `python-dotenv`). Module-level tunables that should not be secret live in `idle_outpost_bot/settings.py`.
+**EN** — All runtime configuration is environment-driven. `python-dotenv` is loaded automatically when a `.env` file is present.
 
-### Core environment variables / 핵심 환경변수
+| Variable | Purpose | Required |
+| --- | --- | --- |
+| `IDLE_OUTPOST_BASE_URL` | Base URL of the official game HTTP API | ✅ |
+| `IDLE_OUTPOST_USERNAME` | Account username / login ID | ✅ |
+| `IDLE_OUTPOST_PASSWORD` | Account password | ✅ |
+| `NOTIFY_WEBHOOK_URL` | Outbound webhook for status messages | ⛔ optional |
+| `NOTIFY_USERNAME` | Display name for notifier messages | ⛔ optional |
+| `STORE_DB_PATH` | SQLite file path (defaults to `./data/store.sqlite3`) | ⛔ optional |
+| `HTTP_TIMEOUT_SECONDS` | Per-request timeout for `httpx` | ⛔ optional |
+| `LOG_LEVEL` | `DEBUG` / `INFO` / `WARNING` / `ERROR` | ⛔ optional |
 
-| Key | Required | Description |
-|---|---|---|
-| `GAME_API_BASE` | yes | Base URL of the game HTTP API (e.g. `https://api.example.game`) |
-| `GAME_ACCOUNT_ID` | yes | Account identifier sent to the auth endpoint |
-| `GAME_AUTH_TOKEN` | yes | Bearer token or session token used by `auth.py` |
-| `NOTIFY_WEBHOOK_URL` | no | Generic JSON webhook for `notifier.py` |
-| `DISCORD_WEBHOOK_URL` | no | Discord-specific webhook (preferred if set) |
-| `SLACK_WEBHOOK_URL` | no | Slack-specific webhook (preferred if set) |
-| `STORE_PATH` | no | Filesystem path to the state DB / JSON (default: `./state`) |
-| `SCRAPER_SOURCES` | no | Comma-separated list of scraper modules to enable |
-| `HTTP_TIMEOUT_SECONDS` | no | Request timeout, default `15` |
-| `LOG_LEVEL` | no | `DEBUG`, `INFO`, `WARNING`, `ERROR` (default `INFO`) |
+**KR** — 모든 런타임 설정은 환경변수 기반입니다. `.env` 파일이 있으면 `python-dotenv`가 자동으로 로드합니다.
 
-### Android bot variables / 봇 환경변수
+| 변수 | 용도 | 필수 |
+| --- | --- | --- |
+| `IDLE_OUTPOST_BASE_URL` | 공식 게임 HTTP API의 베이스 URL | ✅ |
+| `IDLE_OUTPOST_USERNAME` | 계정 사용자명 / 로그인 ID | ✅ |
+| `IDLE_OUTPOST_PASSWORD` | 계정 비밀번호 | ✅ |
+| `NOTIFY_WEBHOOK_URL` | 상태 메시지용 송신 웹훅 | ⛔ 선택 |
+| `NOTIFY_USERNAME` | 알림 표시 이름 | ⛔ 선택 |
+| `STORE_DB_PATH` | SQLite 파일 경로(기본 `./data/store.sqlite3`) | ⛔ 선택 |
+| `HTTP_TIMEOUT_SECONDS` | `httpx` 요청별 타임아웃 | ⛔ 선택 |
+| `LOG_LEVEL` | `DEBUG` / `INFO` / `WARNING` / `ERROR` | ⛔ 선택 |
 
-| Key | Default | Description |
-|---|---|---|
-| `APPIUM_SERVER_URL` | `http://127.0.0.1:4723` | Appium server endpoint |
-| `ANDROID_DEVICE_UDID` | first attached | Target device UDID |
-| `BOT_DRY_RUN` | `false` | If `true`, log actions without tapping |
-| `BOT_SCREENSHOT_DIR` | `./shots` | Where screenshots are saved |
-| `BOT_LANG` | `en` | `en` or `ko` (uses `i18n_ko.properties`) |
-| `BOT_COOLDOWN_MS` | `1500` | Minimum delay between actions |
-
-> Replace any internal/private host with your own placeholder. Never commit real tokens.
-
-### Worker variables / 워커 환경변수
-
-| Key | Description |
-|---|---|
-| `ORCHESTRATOR_URL` | Public URL of the deployed `main.py` HTTP endpoint |
-| `ORCHESTRATOR_TOKEN` | Shared secret expected in `Authorization` header |
-| `CRON_SCHEDULE` | Cron expression in `wrangler.jsonc` (e.g. `*/15 * * * *`) |
+The Android bot reads additional settings from `idle_outpost_bot/settings.py` and screen-specific OCR data from `idle_outpost_bot/calibration/*.ocr.yaml`. See [Android Bot / 안드로이드 봇](#android-bot--안드로이드-봇) for details.
 
 ---
 
 ## Commands Reference / 명령어 레퍼런스
 
-### `main.py`
+### `python main.py …`
 
-`main.py` is the CLI orchestrator. Use `python main.py <command>`.
+| Subcommand | Description / 설명 |
+| --- | --- |
+| `python main.py scrape` | Scrape configured web sources for new promo codes and insert into the store. / 설정된 웹 소스에서 새 프로모 코드를 스크래핑하여 저장소에 삽입. |
+| `python main.py redeem` | Redeem every pending code against the game API. / 보류 중인 모든 코드를 게임 API에 등록. |
+| `python main.py claim` | Trigger the daily reward endpoint (once per UTC day). / 일일 보상 엔드포인트 호출(UTC 기준 하루 한 번). |
+| `python main.py run` | Run `scrape → redeem → claim` sequentially. / `scrape → redeem → claim` 순차 실행. |
+| `python main.py status` | Print store summary (codes seen, redeemed, errors, last claim). / 저장소 요약 출력(수집·등록·오류·마지막 클레임). |
 
-| Command | Purpose |
-|---|---|
-| `python main.py scrape` | Run `scraper.py` once and persist any new codes |
-| `python main.py redeem` | Redeem every unseen code via `redeemer.py` |
-| `python main.py claim` | Perform one daily claim via `claim_api.py` |
-| `python main.py run` | Scrape → redeem → claim → notify in order |
-| `python main.py serve` | Start an HTTP server so the Worker can trigger jobs |
-| `python main.py status` | Print counts from `store.py` (seen / redeemed / claimed) |
-| `python main.py reset --confirm` | Wipe the state store (destructive) |
+### `python -m idle_outpost_bot …`
 
-Common flags:
+| Subcommand | Description / 설명 |
+| --- | --- |
+| `python -m idle_outpost_bot` | Start the Android bot loop (default). / 안드로이드 봇 루프 시작(기본). |
+| `python -m idle_outpost_bot calibrate` | Run the manual calibration wizard. / 수동 캘리브레이션 마법사 실행. |
+| `python -m idle_outpost_bot auto-calibrate` | Run automated calibration from reference screens. / 참조 화면으로 자동 캘리브레이션 실행. |
+| `python -m idle_outpost_bot discover` | Probe on-screen elements and dump candidate bounding boxes. / 화면 요소를 탐색하여 후보 바운딩 박스 출력. |
 
-```bash
-python main.py scrape --dry-run     # print candidates, do not persist
-python main.py redeem --limit 10    # process at most N codes
-python main.py claim --force        # ignore "already claimed today" guard
-python main.py run --skip notify    # run pipeline without webhook step
-```
+### Worker (`worker/`)
 
-### `idle_outpost_bot`
-
-Run as a module so package-relative imports resolve correctly.
-
-```bash
-python -m idle_outpost_bot                      # main loop
-python -m idle_outpost_bot.calibrate            # interactive calibration
-python -m idle_outpost_bot.auto_calibrate       # auto calibration pass
-python -m idle_outpost_bot.discover             # dump discoverable elements
-```
-
-### `worker/` (Cloudflare)
-
-```bash
-cd worker
-npm install
-npx wrangler dev          # local simulation
-npx wrangler deploy       # deploy to Cloudflare
-npx wrangler tail         # live log streaming
-```
+| Command | Description / 설명 |
+| --- | --- |
+| `npx wrangler dev` | Run the Worker locally. / Worker를 로컬에서 실행. |
+| `npx wrangler deploy` | Deploy to Cloudflare. / Cloudflare에 배포. |
+| `npx wrangler tail` | Tail live Worker logs. / Worker 로그 실시간 확인. |
 
 ---
 
-## Components / 컴포넌트별 설명
+## Python Pipeline / 파이썬 파이프라인
 
 ### `scraper.py`
-A pluggable web scraper. Each scraper is a callable that takes an `httpx.Client` and returns a list of candidate codes. New scrapers are registered by appending to `SCRAPER_SOURCES` or by adding a module under the same package and decorating it with `@register_source`.
+
+**EN** — Reads the configured source list, fetches each URL with `httpx`, parses the HTML with BeautifulSoup, extracts candidate codes (regex-validated), hashes them, and inserts unseen codes into the store. The scraper is read-only with respect to the game API.
+
+**KR** — 설정된 소스 목록을 읽고 `httpx`로 각 URL을 가져온 뒤 BeautifulSoup으로 HTML을 파싱하고, 정규식으로 검증된 후보 코드를 추출·해시하여 미등록 코드를 저장소에 삽입합니다. 게임 API에 대해서는 읽기 전용입니다.
 
 ### `auth.py`
-Bootstraps an authenticated `httpx.Client`. It loads `GAME_AUTH_TOKEN` (and optionally performs a refresh handshake) and exposes a context manager so all downstream modules share the same session and cookies.
+
+**EN** — Boots and refreshes an authenticated `httpx` session. On 401 it transparently re-logs-in. Caches tokens in memory (and optionally in the store) to avoid hammering the auth endpoint.
+
+**KR** — 인증된 `httpx` 세션을 부트스트랩하고 갱신합니다. 401 응답 시 투명하게 재로그인합니다. 토큰은 메모리(및 선택적으로 저장소)에 캐시되어 인증 엔드포인트 과다 호출을 방지합니다.
 
 ### `redeemer.py`
-Iterates over codes flagged as `seen` but not `redeemed`, calls the redeem endpoint, and records the response in `store.py`. Errors are classified into `transient` (retry) and `permanent` (mark as `failed`) buckets.
+
+**EN** — Pulls every code with state `new` from the store, calls the redemption endpoint for each, and updates the row to `success` / `expired` / `already-used` / `error` based on the response.
+
+**KR** — 저장소에서 상태가 `new`인 모든 코드를 가져와 각각 등록 엔드포인트를 호출하고, 응답에 따라 행을 `success` / `expired` / `already-used` / `error`로 갱신합니다.
 
 ### `claim_api.py`
-Issues a single daily claim request. Honors a `claimed_today` guard stored in `store.py` so double-claims are impossible. The `--force` flag exists for manual recovery only.
+
+**EN** — Calls the daily-reward endpoint. The store remembers the last successful claim date in UTC; calls within the same UTC day are no-ops.
+
+**KR** — 일일 보상 엔드포인트를 호출합니다. 저장소는 마지막 성공 클레임 날짜를 UTC로 기억하며, 같은 UTC 날짜 내 호출은 무시됩니다.
 
 ### `store.py`
-The single source of truth. It persists three sets: `seen`, `redeemed`, and `claimed`. Implementations may be SQLite (default) or JSON for simple deployments. Every mutation returns the previous value so callers can decide whether to notify.
+
+**EN** — Thin SQLite wrapper. Owns the schema for `codes`, `claims`, and `run_history`. All writes are wrapped in transactions and use `INSERT … ON CONFLICT` for idempotency.
+
+**KR** — 얇은 SQLite 래퍼입니다. `codes`, `claims`, `run_history`의 스키마를 소유합니다. 모든 쓰기는 트랜잭션으로 감싸고 멱등성을 위해 `INSERT … ON CONFLICT`를 사용합니다.
 
 ### `notifier.py`
-Outbound webhook dispatcher. Sends a structured payload (stage, code, status, error) to all configured URLs. Failures are logged but never raise so they cannot poison the pipeline.
+
+**EN** — Sends a single POST per event to `NOTIFY_WEBHOOK_URL`. Designed to be Discord/Slack-compatible; failures here never abort the pipeline.
+
+**KR** — 이벤트당 한 번 POST를 `NOTIFY_WEBHOOK_URL`로 보냅니다. Discord/Slack 호환으로 설계되었으며 여기서의 실패는 파이프라인을 중단시키지 않습니다.
 
 ### `main.py`
-The CLI orchestrator that wires everything together. `serve` mode exposes a tiny HTTP surface (e.g. `POST /scrape`, `POST /redeem`, `POST /claim`) so the Cloudflare Worker can drive it without exposing credentials beyond a shared token.
+
+**EN** — The CLI orchestrator. Parses subcommands, instantiates a single `auth` session, and passes it down to the requested stage. Always exits non-zero on a fatal error so cron/Worker triggers fail loud.
+
+**KR** — CLI 오케스트레이터입니다. 서브커맨드를 파싱하고 단일 `auth` 세션을 인스턴스화해 요청된 단계로 전달합니다. 치명적 오류 시 항상 0이 아닌 코드로 종료되어 cron/Worker 트리거가 명확히 실패합니다.
 
 ---
 
 ## Android Bot / 안드로이드 봇
 
-The `idle_outpost_bot/` package is a separate concern from the HTTP pipeline. It is meant for users who want to drive the actual game client on a device — useful when the HTTP API does not expose a needed action.
+**EN** — The `idle_outpost_bot/` package is a self-contained, optional component. It does **not** share a runtime with the Python pipeline — it just produces notifications into the same webhook.
 
-### Layout
+Highlights:
 
-- **`driver.py`** — Appium session lifecycle. Owns the `webdriver.Remote` object and waits for app readiness.
-- **`vision.py`** — Wraps PaddleOCR. Loads reference images from `calibration/` and produces text matches with bounding boxes.
-- **`actions.py`** — High-level verbs (`open_inbox`, `claim_daily`, `play_ad`, etc.) composed from `vision.py` primitives.
-- **`loop.py`** — The outer event loop. Ticks the state machine forward with cooldowns from `safety.py`.
-- **`state.py`** — In-memory state machine tracking which screens have been visited and which rewards have been collected in this session.
-- **`safety.py`** — Hard guards: minimum delay between actions, abort if the screen text does not match expected calibration, abort after N consecutive failures.
-- **`settings.py`** — Tunables consumed at startup (cooldowns, retry counts, screenshot paths).
-- **`config_loader.py`** — Loads `settings.yaml` if present and overlays environment variables.
-- **`calibrate.py` / `auto_calibrate.py`** — Tools for capturing reference screenshots and OCR templates stored in `calibration/`.
-- **`discover.py`** — One-shot helper that dumps every visible UI element to stdout for debugging or new calibration.
-- **`i18n_ko.properties`** — Korean UI strings used by `vision.py` and `notify.py`.
+- **Driver** (`driver.py`) — boots an Appium session against a connected Android device.
+- **Vision** (`vision.py`) — PaddleOCR + template matching against the reference PNGs in `calibration/`.
+- **Calibration** (`calibration/*.ocr.yaml`) — per-screen OCR anchors and match regions. Edit these when the game UI changes.
+- **Actions** (`actions.py`) — primitive taps, swipes, waits, with safety throttling (`safety.py`).
+- **Loop** (`loop.py`) — finite-state machine over named screens (`main`, `inbox`, `calendar`, `cards`, `wheel`, `quests`, …) defined in `calibration/`.
+- **Discovery** (`discover.py`, `auto_calibrate.py`) — heuristic helpers for finding new anchors after a UI update.
+- **Localization** (`i18n_ko.properties`) — Korean strings used by OCR post-processing.
+- **Notifications** (`notify.py`) — reuses the same webhook as `notifier.py`.
 
-### Calibration data
+To run:
 
-The `calibration/` directory contains two kinds of files:
+```bash
+# 1. Start Appium server (default port 4723)
+appium
 
-- **`*.png`** — reference screenshots for each known game screen
-- **`*.ocr.yaml`** — OCR expectations: which text fragments must appear, where, and in what order
-- **`*.yaml`** — composite descriptors (e.g. `main_screen.yaml`) that combine multiple OCR expectations and probe images
+# 2. Connect a device
+adb devices
 
-When the game updates its UI, refresh these files with `python -m idle_outpost_bot.calibrate`.
+# 3. (Optional) Re-calibrate against current game build
+python -m idle_outpost_bot calibrate
+# or
+python -m idle_outpost_bot auto-calibrate
 
-### Bot-specific docs / 봇 전용 문서
+# 4. Run the loop
+python -m idle_outpost_bot
+```
 
-The package ships with deep-dive markdown files that complement this README:
+See [`idle_outpost_bot/README.md`](idle_outpost_bot/README.md), [`idle_outpost_bot/AD_REWARDS.md`](idle_outpost_bot/AD_REWARDS.md), [`idle_outpost_bot/AUTOMATION_TARGETS.md`](idle_outpost_bot/AUTOMATION_TARGETS.md), [`idle_outpost_bot/CALIBRATION_FULL.md`](idle_outpost_bot/CALIBRATION_FULL.md), and [`idle_outpost_bot/JADX_FULL_INVENTORY.md`](idle_outpost_bot/JADX_FULL_INVENTORY.md) for in-depth bot documentation.
 
-- `AD_REWARDS.md` — how rewarded ads are detected and watched
-- `API_RESEARCH.md` — notes from reverse-engineering the game client
-- `AUTOMATION_TARGETS.md` — full list of automatable UI targets
-- `CALIBRATION_FULL.md` — calibration workflow
-- `JADX_FULL_INVENTORY.md` — JADX-decompiled inventory of the APK
+**KR** — `idle_outpost_bot/` 패키지는 독립적인 선택형 컴포넌트입니다. 파이썬 파이프라인과 런타임을 공유하지 않으며, 동일한 웹훅으로 알림을 보낼 뿐입니다.
+
+핵심 요소:
+
+- **Driver**(`driver.py`) — 연결된 안드로이드 디바이스에 대한 Appium 세션 부팅.
+- **Vision**(`vision.py`) — `calibration/`의 참조 PNG에 대한 PaddleOCR + 템플릿 매칭.
+- **Calibration**(`calibration/*.ocr.yaml`) — 화면별 OCR 앵커 및 매칭 영역. 게임 UI 변경 시 수정.
+- **Actions**(`actions.py`) — 탭·스와이프·대기 등의 프리미티브. `safety.py`로 스로틀링.
+- **Loop**(`loop.py`) — `calibration/`에 정의된 명명된 화면(`main`, `inbox`, `calendar`, `cards`, `wheel`, `quests`, …)에 대한 유한 상태 머신.
+- **Discovery**(`discover.py`, `auto_calibrate.py`) — UI 업데이트 후 새 앵커를 찾는 휴리스틱 도우미.
+- **Localization**(`i18n_ko.properties`) — OCR 후처리에 사용되는 한국어 문자열.
+- **Notifications**(`notify.py`) — `notifier.py`와 동일한 웹훅 재사용.
+
+실행:
+
+```bash
+# 1. Appium 서버 시작 (기본 포트 4723)
+appium
+
+# 2. 디바이스 연결
+adb devices
+
+# 3. (선택) 현재 게임 빌드에 대해 캘리브레이션 재실행
+python -m idle_outpost_bot calibrate
+# 또는
+python -m idle_outpost_bot auto-calibrate
+
+# 4. 루프 실행
+python -m idle_outpost_bot
+```
+
+자세한 내용은 `idle_outpost_bot/` 디렉터리의 README, AD_REWARDS, AUTOMATION_TARGETS, CALIBRATION_FULL, JADX_FULL_INVENTORY 문서를 참조하세요.
 
 ---
 
 ## Cloudflare Worker
 
-The `worker/` directory is an optional companion that schedules `main.py` from the edge, so you do not need to keep a long-running host online.
+**EN** — `worker/` is a thin cron-triggered Worker that POSTs to a public URL that triggers `python main.py run` (e.g. a self-hosted webhook bridge, a tunneled endpoint, or a queue).
 
-### How it works
-
-1. Wrangler deploys `src/index.ts` to Cloudflare Workers.
-2. A **Cron Trigger** (`scheduled` handler) fires on the schedule defined in `wrangler.jsonc`.
-3. The worker POSTs to your orchestrator's `ORCHESTRATOR_URL` with `ORCHESTRATOR_TOKEN`.
-4. `main.py serve` receives the request, runs the requested stage, and returns a JSON summary.
-
-### Local development
+Local development:
 
 ```bash
 cd worker
 npm install
 npx wrangler dev
-# In another shell, simulate a cron tick:
-curl "http://127.0.0.1:8787/__scheduled?cron=*/15+*+*+*+*"
 ```
 
-See `worker/README.md` for worker-specific notes.
+Configuration lives in `worker/wrangler.jsonc`. Schedule the cron with the standard Cloudflare `triggers.crons` field. See [`worker/README.md`](worker/README.md) for deployment details.
+
+**KR** — `worker/`는 cron으로 트리거되어 공개 URL(예: 자체 호스팅 웹훅 브리지, 터널 엔드포인트, 큐)에 POST하여 `python main.py run`을 실행시키는 얇은 Worker입니다.
+
+로컬 개발:
+
+```bash
+cd worker
+npm install
+npx wrangler dev
+```
+
+설정은 `worker/wrangler.jsonc`에 있습니다. cron은 표준 Cloudflare `triggers.crons` 필드로 설정하세요. 배포 자세한 내용은 [`worker/README.md`](worker/README.md)를 참조하세요.
 
 ---
 
 ## Local Development / 로컬 개발
 
-### Project tooling
-
-- **`uv`** — package manager and venv driver (uses `uv.lock`)
-- **Ruff** — linter, configured in `pyproject.toml` (`line-length = 100`, `target-version = "py311"`)
-- **basedpyright** — type checker, configured in `pyproject.toml`
-
-### Common tasks
+**EN**
 
 ```bash
-# Lint
-ruff check .
+# Lint / 린트
+uv run ruff check .
+uv run ruff format .
 
-# Format
-ruff format .
+# Type-check / 타입 체크
+uv run basedpyright
 
-# Type check
-basedpyright .
-
-# Install all extras (bot included)
-uv pip install -e ".[bot]"
-
-# Run a single module
-python -m scraper
-python -m redeemer
-python -m claim_api
+# Install in editable mode with all extras
+uv sync --extra bot
 ```
 
-### Code style
+Useful environment toggles during development:
 
-- Type hints everywhere on public functions.
-- Module-level docstrings in English; user-facing strings localizable via `i18n_ko.properties`.
-- Logging through the standard `logging` module; do not `print` from library code.
+- `LOG_LEVEL=DEBUG` for verbose logs.
+- `STORE_DB_PATH=:memory:` to use an in-memory SQLite (great for tests).
+- `DRY_RUN=1` (if implemented in your local fork) to short-circuit outbound HTTP.
+
+**KR**
+
+```bash
+# 린트
+uv run ruff check .
+uv run ruff format .
+
+# 타입 체크
+uv run basedpyright
+
+# 모든 extras 포함 editable 설치
+uv sync --extra bot
+```
+
+개발 중 유용한 환경 토글:
+
+- `LOG_LEVEL=DEBUG`로 상세 로그.
+- `STORE_DB_PATH=:memory:`로 인메모리 SQLite 사용(테스트에 유용).
+- `DRY_RUN=1`(로컬 포크에 구현된 경우) 송신 HTTP를 단락 처리.
 
 ---
 
 ## Testing / 테스트
 
-There is no mandatory test runner configured in `pyproject.toml` today. The recommended approach is `pytest`, and the layout below mirrors the package structure.
+**EN** — Test layout follows standard `pytest` discovery. Suggested locations:
 
-```text
+```
 tests/
 ├── test_scraper.py
 ├── test_redeemer.py
 ├── test_claim_api.py
 ├── test_store.py
-├── test_notifier.py
-└── idle_outpost_bot/
-    ├── test_vision.py
-    ├── test_actions.py
-    └── test_safety.py
+└── test_notifier.py
 ```
 
-### Smoke tests
-
-For a quick sanity check without running the full pipeline:
+Run them with:
 
 ```bash
-python main.py scrape --dry-run
-python main.py redeem --dry-run
-python main.py status
+uv run pytest -q
 ```
 
-A healthy run should show monotonically increasing counts and no `failed` codes after the first successful cycle.
+For the Android bot, end-to-end tests require a connected device and Appium server. Use `python -m idle_outpost_bot discover` for offline sanity checks of calibration assets.
+
+**KR** — 테스트 레이아웃은 표준 `pytest` 검색을 따릅니다. 권장 위치:
+
+```
+tests/
+├── test_scraper.py
+├── test_redeemer.py
+├── test_claim_api.py
+├── test_store.py
+└── test_notifier.py
+```
+
+실행:
+
+```bash
+uv run pytest -q
+```
+
+안드로이드 봇의 E2E 테스트는 연결된 디바이스와 Appium 서버가 필요합니다. 캘리브레이션 자산의 오프라인 sanity check는 `python -m idle_outpost_bot discover`를 사용하세요.
 
 ---
 
 ## Contributing / 기여
 
-Contributions are welcome. Please read `CONTRIBUTING.md` for the full guidelines. At a glance:
+**EN** — See [`CONTRIBUTING.md`](CONTRIBUTING.md) for the full guide. The short version:
 
-1. Fork the repository and create a topic branch.
-2. Keep PRs small and focused on a single component (scraper, redeemer, bot, etc.).
-3. Run `ruff check`, `ruff format --check`, and `basedpyright` before opening a PR.
-4. Add or update unit tests for any behavior change.
-5. Do not commit credentials, device screenshots containing personal data, or proprietary APK content.
-6. If you add a new scraper source, document it in `scraper.py` and add an entry to `SCRAPER_SOURCES` example in `.env.example`.
+1. Fork & create a feature branch.
+2. Run `uv run ruff check . && uv run ruff format .` before committing.
+3. Add or update tests under `tests/`.
+4. Update calibration assets under `idle_outpost_bot/calibration/` when the game UI changes — *do not* silently mask failures in `vision.py`.
+5. Open a PR with a clear description, linked issue, and a sample run log.
+
+**KR** — 자세한 안내는 [`CONTRIBUTING.md`](CONTRIBUTING.md)를 참조하세요. 간단 요약:
+
+1. 포크 후 기능 브랜치를 생성합니다.
+2. 커밋 전 `uv run ruff check . && uv run ruff format .` 실행.
+3. `tests/` 아래에 테스트를 추가하거나 갱신합니다.
+4. 게임 UI 변경 시 `idle_outpost_bot/calibration/`의 캘리브레이션 자산을 갱신하세요. `vision.py`에서 실패를 조용히 가리지 마세요.
+5. 명확한 설명·연결된 이슈·샘플 실행 로그와 함께 PR을 엽니다.
 
 ---
 
 ## Troubleshooting / 문제 해결
 
-### `scraper.py` returns nothing
+**EN**
 
-- Check `HTTP_TIMEOUT_SECONDS`; some sources are slow.
-- Verify your network can reach the configured source domains.
-- Run with `--dry-run` and `--log-level DEBUG` to see raw HTTP responses.
+| Symptom | Likely cause | Fix |
+| --- | --- | --- |
+| `401 Unauthorized` on redeem | Expired session token | `auth.py` should auto-refresh; verify env credentials are correct. |
+| Codes never reach `success` | API URL/region mismatch | Confirm `IDLE_OUTPOST_BASE_URL` and account region. |
+| `notifier` never sends | Bad webhook URL or rate-limited endpoint | Check `NOTIFY_WEBHOOK_URL`; notifier failures are non-fatal by design. |
+| Bot stuck on `main_screen` | Stale calibration after a UI update | Re-run `python -m idle_outpost_bot auto-calibrate`. |
+| Worker returns 200 but nothing happens | The Worker posts to a bridge URL that isn't reachable | Confirm the bridge is up and `CRON_TARGET_URL` is set. |
+| `paddleocr` install fails | Missing system libs | Install OpenBLAS / protobuf system packages per PaddleOCR docs. |
 
-### `redeemer.py` reports `401` / `403`
+**KR**
 
-- `GAME_AUTH_TOKEN` likely expired. Refresh it through `auth.py` and retry.
-- Confirm `GAME_API_BASE` matches the region of your account.
-
-### Android bot taps the wrong element
-
-- The game UI probably changed. Refresh calibration: `python -m idle_outpost_bot.calibrate`.
-- Verify `BOT_LANG` matches the in-game language; OCR templates are language-specific.
-
-### Worker cannot reach orchestrator
-
-- Confirm `ORCHESTRATOR_URL` is publicly reachable from Cloudflare's edge.
-- Confirm `ORCHESTRATOR_TOKEN` matches what `main.py serve` validates.
-
-### Bot stops with "screen mismatch"
-
-- `safety.py` aborted because the OCR output did not match the expected calibration for the current screen. Recalibrate or roll back the app version you target.
+| 증상 | 추정 원인 | 해결 |
+| --- | --- | --- |
+| 등록 시 `401 Unauthorized` | 세션 토큰 만료 | `auth.py`가 자동 갱신해야 함; 환경변수 자격증명 확인. |
+| 코드가 `success`에 도달하지 않음 | API URL/리전 불일치 | `IDLE_OUTPOST_BASE_URL`과 계정 리전 확인. |
+| `notifier`가 전송되지 않음 | 잘못된 웹훅 URL 또는 레이트 리밋 | `NOTIFY_WEBHOOK_URL` 확인; 알림 실패는 설계상 치명적이지 않음. |
+| 봇이 `main_screen`에서 멈춤 | UI 업데이트로 인한 캘리브레이션 노후화 | `python -m idle_outpost_bot auto-calibrate` 재실행. |
+| Worker가 200을 반환하지만 아무 일도 일어나지 않음 | Worker가 도달 불가능한 브리지 URL에 POST함 | 브리지 가동 상태 및 `CRON_TARGET_URL` 설정 확인. |
+| `paddleocr` 설치 실패 | 시스템 라이브러리 누락 | PaddleOCR 문서에 따라 OpenBLAS / protobuf 시스템 패키지 설치. |
 
 ---
 
 ## Disclaimer / 면책
 
-This project automates interactions with a third-party mobile game. Use it at your own risk and respect the game's Terms of Service and applicable laws. The maintainers are not affiliated with the game's developer or publisher. Do not use this tool to harass, exploit, or gain unfair advantage over other players, and do not use it on accounts you do not own.
+**EN** — This project is an unofficial, community-built automation kit for the mobile game *Idle Outpost*. It interacts only with public web pages and the official HTTP endpoints exposed by the game. Use of automation tools may violate the game's Terms of Service; **you are solely responsible for your account**. The authors disclaim all liability for bans, lost progress, or any other consequences arising from use of this software.
 
-본 프로젝트는 제3자 모바일 게임의 상호작용을 자동화합니다. 사용으로 인한 책임은 사용자 본인에게 있으며, 게임의 이용약관 및 관련 법령을 준수해야 합니다. 본 저장소 유지보수자는 해당 게임의 개발사/배급사와 제휴 관계가 아닙니다. 본 도어를 타인에게 피해를 주거나 부정한 이득을 취하는 용도로 사용하지 마십시오.
+**KR** — 본 프로젝트는 모바일 게임 *Idle Outpost*를 위한 비공식 커뮤니티 자동화 키트입니다. 공개 웹 페이지와 게임이 제공하는 공식 HTTP 엔드포인트만을 사용합니다. 자동화 도구 사용은 게임 이용약관을 위반할 수 있으며, **계정에 대한 책임은 전적으로 사용자에게 있습니다**. 본 소프트웨어 사용으로 발생하는 계정 정지, 진행도 손실 등 모든 결과에 대해 작성자는 일체의 책임을 지지 않습니다.
 
 ---
 
 ## License / 라이선스
 
-Released under the terms described in `LICENSE`.
+**EN** — Released under the terms of [`LICENSE`](LICENSE). By using this software you agree to those terms.
+
+**KR** — [`LICENSE`](LICENSE)의 조건에 따라 배포됩니다. 본 소프트웨어를 사용함으로써 해당 조건에 동의하는 것으로 간주됩니다.
