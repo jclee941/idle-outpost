@@ -2,112 +2,79 @@
 
 ## Module Dependency Diagram
 
-```mermaid
-flowchart TB
-    subgraph Entry["📌 Entry Points"]
-        MAIN["main.py<br/>Promo Code CLI"]
-        BOT["idle_outpost_bot/__main__.py<br/>Android Bot CLI"]
-    end
+#### Diagram summary 1
 
-    subgraph Promo["🎁 Promo Code Monitor"]
-        AUTH["auth.py<br/>Xsolla Auth"]
-        CLAIM["claim_api.py<br/>Daily Claim"]
-        REDEEM["redeemer.py<br/>Code Redeem"]
-        SCRAPE["scraper.py<br/>Code Scraper"]
-        STORE["store.py<br/>JSON Store"]
-        NOTIFY["notifier.py<br/>Slack Notify"]
-    end
+- Type: flowchart
+- Component: main.py / Promo Code CLI (MAIN)
+- Component: idleoutpostbot/main.py / Android Bot CLI (BOT)
+- Component: auth.py / Xsolla Auth (AUTH)
+- Component: claimapi.py / Daily Claim (CLAIM)
+- Component: redeemer.py / Code Redeem (REDEEM)
+- Component: scraper.py / Code Scraper (SCRAPE)
+- Component: store.py / JSON Store (STORE)
+- Component: notifier.py / Slack Notify (NOTIFY)
+- Component: settings.py / Env Config (SETTINGS)
+- Component: state.py / Bot State (STATE)
+- Component: configloader.py / YAML Config (CFG)
+- Component: loop.py / Main Loop (LOOP)
+- Component: driver.py / Appium Driver (DRIVER)
+- Component: vision.py / OCR / CV (VISION)
+- Component: actions.py / Tap / Swipe (ACTIONS)
+- Component: safety.py / Guardrails (SAFETY)
+- Component: tasks/ / Task Registry (TASKS)
+- Component: notify.py / Bot Notify (BOTNOTIFY)
+- Component: client.py / HTTP Client (APICLIENT)
+- Component: api/auth.py / GameAuth (APIAUTH)
+- Component: endpoints.py / URLs (ENDPOINTS)
+- Component: firebaseconfig.py / Firebase (FIREBASE)
+- Component: analyzecapture.py / Capture Analysis (ANALYZE)
+- Component: Slack Webhook (SLACK)
+- Component: Xsolla API (XSOLLA)
+- Component: Idle Outpost API (IDLE)
+- Component: Firebase API (FIREBASEAPI)
+- main.py / Promo Code CLI (MAIN) -> auth.py / Xsolla Auth (AUTH)
+- main.py / Promo Code CLI (MAIN) -> claimapi.py / Daily Claim (CLAIM)
+- main.py / Promo Code CLI (MAIN) -> redeemer.py / Code Redeem (REDEEM)
+- main.py / Promo Code CLI (MAIN) -> scraper.py / Code Scraper (SCRAPE)
+- main.py / Promo Code CLI (MAIN) -> store.py / JSON Store (STORE)
+- main.py / Promo Code CLI (MAIN) -> notifier.py / Slack Notify (NOTIFY)
+- auth.py / Xsolla Auth (AUTH) -> Xsolla API (XSOLLA)
+- claimapi.py / Daily Claim (CLAIM) -> auth.py / Xsolla Auth (AUTH)
+- claimapi.py / Daily Claim (CLAIM) -> notifier.py / Slack Notify (NOTIFY)
+- redeemer.py / Code Redeem (REDEEM) -> auth.py / Xsolla Auth (AUTH)
+- redeemer.py / Code Redeem (REDEEM) -> Idle Outpost API (IDLE)
+- scraper.py / Code Scraper (SCRAPE) -> Idle Outpost API (IDLE)
+- notifier.py / Slack Notify (NOTIFY) -> Slack Webhook (SLACK)
+- idleoutpostbot/main.py / Android Bot CLI (BOT) -> settings.py / Env Config (SETTINGS)
+- idleoutpostbot/main.py / Android Bot CLI (BOT) -> state.py / Bot State (STATE)
+- idleoutpostbot/main.py / Android Bot CLI (BOT) -> configloader.py / YAML Config (CFG)
+- idleoutpostbot/main.py / Android Bot CLI (BOT) -> loop.py / Main Loop (LOOP)
+- idleoutpostbot/main.py / Android Bot CLI (BOT) -> driver.py / Appium Driver (DRIVER)
+- idleoutpostbot/main.py / Android Bot CLI (BOT) -> vision.py / OCR / CV (VISION)
+- idleoutpostbot/main.py / Android Bot CLI (BOT) -> notify.py / Bot Notify (BOTNOTIFY)
+- loop.py / Main Loop (LOOP) -> configloader.py / YAML Config (CFG)
+- loop.py / Main Loop (LOOP) -> state.py / Bot State (STATE)
+- loop.py / Main Loop (LOOP) -> tasks/ / Task Registry (TASKS)
+- loop.py / Main Loop (LOOP) -> vision.py / OCR / CV (VISION)
+- loop.py / Main Loop (LOOP) -> notify.py / Bot Notify (BOTNOTIFY)
+- tasks/ / Task Registry (TASKS) -> actions.py / Tap / Swipe (ACTIONS)
+- tasks/ / Task Registry (TASKS) -> safety.py / Guardrails (SAFETY)
+- tasks/ / Task Registry (TASKS) -> vision.py / OCR / CV (VISION)
+- actions.py / Tap / Swipe (ACTIONS) -> vision.py / OCR / CV (VISION)
+- safety.py / Guardrails (SAFETY) -> vision.py / OCR / CV (VISION)
+- driver.py / Appium Driver (DRIVER) -> settings.py / Env Config (SETTINGS)
+- notify.py / Bot Notify (BOTNOTIFY) -> notifier.py / Slack Notify (NOTIFY)
+- configloader.py / YAML Config (CFG) -> vision.py / OCR / CV (VISION)
+- client.py / HTTP Client (APICLIENT) -> api/auth.py / GameAuth (APIAUTH)
+- client.py / HTTP Client (APICLIENT) -> endpoints.py / URLs (ENDPOINTS)
+- client.py / HTTP Client (APICLIENT) -> firebaseconfig.py / Firebase (FIREBASE)
+- api/auth.py / GameAuth (APIAUTH) -> endpoints.py / URLs (ENDPOINTS)
+- api/auth.py / GameAuth (APIAUTH) -> Xsolla API (XSOLLA)
+- analyzecapture.py / Capture Analysis (ANALYZE) -> firebaseconfig.py / Firebase (FIREBASE)
+- firebaseconfig.py / Firebase (FIREBASE) -> Firebase API (FIREBASEAPI)
+- claimapi.py / Daily Claim (CLAIM) -> client.py / HTTP Client (APICLIENT)
+- redeemer.py / Code Redeem (REDEEM) -> client.py / HTTP Client (APICLIENT)
 
-    subgraph BotCore["🤖 Android Bot Core"]
-        SETTINGS["settings.py<br/>Env Config"]
-        STATE["state.py<br/>Bot State"]
-        CFG["config_loader.py<br/>YAML Config"]
-        LOOP["loop.py<br/>Main Loop"]
-        DRIVER["driver.py<br/>Appium Driver"]
-        VISION["vision.py<br/>OCR / CV"]
-        ACTIONS["actions.py<br/>Tap / Swipe"]
-        SAFETY["safety.py<br/>Guardrails"]
-        TASKS["tasks/<br/>Task Registry"]
-        BOT_NOTIFY["notify.py<br/>Bot Notify"]
-    end
-
-    subgraph ApiClient["🔌 API Client"]
-        API_CLIENT["client.py<br/>HTTP Client"]
-        API_AUTH["api/auth.py<br/>GameAuth"]
-        ENDPOINTS["endpoints.py<br/>URLs"]
-        FIREBASE["firebase_config.py<br/>Firebase"]
-        ANALYZE["analyze_capture.py<br/>Capture Analysis"]
-    end
-
-    subgraph External["🌐 External"]
-        SLACK["Slack Webhook"]
-        XSOLLA["Xsolla API"]
-        IDLE["Idle Outpost API"]
-        FIREBASE_API["Firebase API"]
-    end
-
-    %% Entry -> Promo
-    MAIN --> AUTH
-    MAIN --> CLAIM
-    MAIN --> REDEEM
-    MAIN --> SCRAPE
-    MAIN --> STORE
-    MAIN --> NOTIFY
-
-    %% Promo internal
-    AUTH --> XSOLLA
-    CLAIM --> AUTH
-    CLAIM --> NOTIFY
-    REDEEM --> AUTH
-    REDEEM --> IDLE
-    SCRAPE --> IDLE
-    NOTIFY --> SLACK
-
-    %% Entry -> Bot
-    BOT --> SETTINGS
-    BOT --> STATE
-    BOT --> CFG
-    BOT --> LOOP
-    BOT --> DRIVER
-    BOT --> VISION
-    BOT --> BOT_NOTIFY
-
-    %% Bot internal
-    LOOP --> CFG
-    LOOP --> STATE
-    LOOP --> TASKS
-    LOOP --> VISION
-    LOOP --> BOT_NOTIFY
-    TASKS --> ACTIONS
-    TASKS --> SAFETY
-    TASKS --> VISION
-    ACTIONS --> VISION
-    SAFETY --> VISION
-    DRIVER --> SETTINGS
-    BOT_NOTIFY --> NOTIFY
-    CFG --> VISION
-
-    %% API Client
-    API_CLIENT --> API_AUTH
-    API_CLIENT --> ENDPOINTS
-    API_CLIENT --> FIREBASE
-    API_AUTH --> ENDPOINTS
-    API_AUTH --> XSOLLA
-    ANALYZE --> FIREBASE
-    FIREBASE --> FIREBASE_API
-
-    %% Cross-cutting
-    CLAIM -.->|uses| API_CLIENT
-    REDEEM -.->|uses| API_CLIENT
-
-    style MAIN fill:#e1f5fe
-    style BOT fill:#e1f5fe
-    style NOTIFY fill:#fff3e0
-    style BOT_NOTIFY fill:#fff3e0
-    style FIREBASE fill:#ffebee
-    style AUTH fill:#ffebee
-    style API_CLIENT fill:#f3e5f5
-```
 
 ## Directory Structure
 
@@ -151,64 +118,59 @@ idle-outpost/
 
 ## Data Flow (Promo Code Monitor)
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant main.py
-    participant scraper.py
-    participant store.py
-    participant redeemer.py
-    participant auth.py
-    participant notifier.py
+#### Diagram summary 2
 
-    User->>main.py: python main.py check
-    main.py->>scraper.py: scrape_codes_with_metadata()
-    scraper.py-->>main.py: list[Code]
-    main.py->>store.py: get_new_codes()
-    store.py-->>main.py: new_codes[]
-    alt new codes found
-        main.py->>store.py: save_codes()
-        main.py->>notifier.py: notify_new_codes()
-        notifier.py->>notifier.py: POST Slack webhook
-    end
-    main.py->>store.py: get_retryable_codes()
-    store.py-->>main.py: retryable[]
-    loop retryable codes
-        main.py->>redeemer.py: attempt_redeem(code)
-        redeemer.py->>auth.py: get_bearer_token()
-        auth.py-->>redeemer.py: Bearer token
-        redeemer.py->>redeemer.py: POST /redeem
-        redeemer.py-->>main.py: RedeemResult
-        main.py->>store.py: mark_redeem_result()
-    end
-```
+- Type: sequence
+- Participant: User
+- Participant: main.py
+- Participant: scraper.py
+- Participant: store.py
+- Participant: redeemer.py
+- Participant: auth.py
+- Participant: notifier.py
+- User -> main.py: python main.py check
+- main.py -> scraper.py: scrapecodeswithmetadata()
+- scraper.py -> main.py: list[Code]
+- main.py -> store.py: getnewcodes()
+- store.py -> main.py: newcodes[]
+- main.py -> store.py: savecodes()
+- main.py -> notifier.py: notifynewcodes()
+- notifier.py -> notifier.py: POST Slack webhook
+- main.py -> store.py: getretryablecodes()
+- store.py -> main.py: retryable[]
+- main.py -> redeemer.py: attemptredeem(code)
+- redeemer.py -> auth.py: getbearertoken()
+- auth.py -> redeemer.py: Bearer token
+- redeemer.py -> redeemer.py: POST /redeem
+- redeemer.py -> main.py: RedeemResult
+- main.py -> store.py: markredeemresult()
+
 
 ## Data Flow (Android Bot)
 
-```mermaid
-sequenceDiagram
-    actor User
-    participant __main__.py
-    participant loop.py
-    participant driver.py
-    participant vision.py
-    participant tasks/registry.py
-    participant state.py
+#### Diagram summary 3
 
-    User->>__main__.py: python -m idle_outpost_bot run
-    __main__.py->>loop.py: run_loop()
-    loop->>state.py: load_state()
-    state.py-->>loop.py: BotState
-    loop->>driver.py: session()
-    driver.py-->>loop.py: WebDriver
-    loop->>vision.py: Ocr(lang=...)
-    loop->>loop.py: while running
-    loop->>vision.py: grab_screenshot()
-    vision.py-->>loop.py: PIL.Image
-    loop->>vision.py: find_text(image, "text")
-    vision.py-->>loop.py: OcrHit[]
-    loop->>tasks/registry.py: run_task()
-    tasks/registry.py->>driver.py: tap(x, y)
-    tasks/registry.py-->>loop.py: TaskResult
-    loop->>state.py: save_state()
-```
+- Type: sequence
+- Participant: User
+- Participant: main.py
+- Participant: loop.py
+- Participant: driver.py
+- Participant: vision.py
+- Participant: tasks/registry.py
+- Participant: state.py
+- User -> main.py: python -m idleoutpostbot run
+- main.py -> loop.py: runloop()
+- loop -> state.py: loadstate()
+- state.py -> loop.py: BotState
+- loop -> driver.py: session()
+- driver.py -> loop.py: WebDriver
+- loop -> vision.py: Ocr(lang=...)
+- loop -> loop.py: while running
+- loop -> vision.py: grabscreenshot()
+- vision.py -> loop.py: PIL.Image
+- loop -> vision.py: findtext(image, "text")
+- vision.py -> loop.py: OcrHit[]
+- loop -> tasks: runtask()
+- tasks -> driver.py: tap(x, y)
+- tasks -> loop.py: TaskResult
+- loop -> state.py: savestate()
