@@ -1,334 +1,256 @@
-# Idle Outpost Codes
+# idle-outpost-codes
 
-![Python](https://img.shields.io/badge/python-3.11%2B-blue) ![uv](https://img.shields.io/badge/deps-uv-purple) [![License: MIT](https://img.shields.io/badge/license-MIT-green)](LICENSE) ![Bot](https://img.shields.io/badge/optional-android%20bot-orange) ![Worker](https://img.shields.io/badge/optional-cloudflare%20worker-orange) ![Status](https://img.shields.io/badge/status-experimental-yellow)
+[![Python](https://img.shields.io/badge/Python-3.11%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Cloudflare Workers](https://img.shields.io/badge/Cloudflare-Workers-F38020?logo=cloudflare&logoColor=white)](https://workers.cloudflare.com/)
+[![Appium](https://img.shields.io/badge/Appium-Android-662D91)](http://appium.io/)
+[![PaddleOCR](https://img.shields.io/badge/PaddleOCR-vision-0072CE)](https://github.com/PaddlePaddle/PaddleOCR)
+[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
 
-> **프로모션 코드 모니터링 · 일일 보상 클레임 · 안드로이드 자동화(옵션)**
-> *Promo-code monitor · daily-reward claim CLI · optional Android automation bot*
+## 한국어 요약
 
-## 한 줄 요약 / One-line summary
+`idle-outpost-codes` 는 모바일 게임 **Idle Outpost** 의 프로모션 코드와 일일 보상을 자동으로 모니터링하고
+수령하기 위한 워크스페이스입니다. 세 가지 배포 단위로 구성됩니다.
 
-핵심 파이프라인은 단일 Python CLI(`python main.py`)이며, 같은 저장소에서 안드로이드 비전 봇과 Cloudflare Worker를 옵션으로 활성화할 수 있습니다.
+- **프로모션 코드 파이프라인** (`scraper.py`, `claim_api.py`, `redeemer.py`, `store.py`, `auth.py`, `notifier.py`)
+  - 공개된 코드 목록을 주기적으로 스크랩하고, 인증 후 게임 API 로 클레임하고, 상태를 저장하고 알림을 보냅니다.
+- **Cloudflare Worker HTTP API** (`worker/src/index.ts`)
+  - 코드 목록과 클레임 상태를 외부에 노출하는 경량 엔드포인트입니다.
+- **Android 자동화 봇** (`idle_outpost_bot/`)
+  - Appium + Selenium 으로 기기를 제어하고, PaddleOCR 과 템플릿 매칭으로 화면을 판독하여 출석·퀘스트·광고 보상 루틴을
+    반복 실행합니다.
 
-The core pipeline is a single Python CLI (`python main.py`); an Android vision bot and a Cloudflare Worker live in the same repository and can be enabled independently.
+## English Summary
 
-## 빠른 상태 / Quick status
+A workspace for monitoring Idle Outpost promo codes, claiming daily rewards, and running an on-device Android
+automation loop. It combines a Python scrape/claim pipeline, a Cloudflare Worker API, and an Appium-driven
+Android bot with PaddleOCR vision calibration.
 
-| 항목 / Item | 값 / Value | 비고 / Notes |
-|---|---|---|
-| 패키지 / Package | `idle-outpost-codes` | [`pyproject.toml`](pyproject.toml) |
-| 버전 / Version | `0.1.0` | 사전 배포 / pre-release |
-| Python | `>= 3.11` | `requires-python` |
-| 의존성 관리 / Dependency manager | `uv` 권장 / recommended | [`uv.lock`](uv.lock) 포함 |
-| 라이선스 / License | MIT | [`LICENSE`](LICENSE) |
-| 운영 준비도 / Production readiness | Experimental | 스크래퍼 + 클레임 CLI 안정, 봇은 실험적 |
-| 진입점 / Entry point | `python main.py` | 단일 진입점 |
-| 옵션 A / Optional A | Android vision bot | [`idle_outpost_bot/`](idle_outpost_bot/) |
-| 옵션 B / Optional B | Cloudflare Worker | [`worker/`](worker/) |
-| 영속 레이어 / Persistence | `store.py` | 코드 ID 기준 멱등 |
-| 알림 채널 / Notifications | `notifier.py` | 단일 어댑터 |
+## Status
 
-## 흐름 한눈에 / Flow at a glance
+| Component            | Runtime                | Status         | Entry point                  | Owner surface                |
+| -------------------- | ---------------------- | -------------- | ---------------------------- | ---------------------------- |
+| Promo code pipeline  | Python 3.11+ CLI       | Active         | `python main.py`             | `main.py` orchestration      |
+| HTTP API             | Cloudflare Worker      | Active         | `worker/src/index.ts`        | `wrangler.jsonc` deploy      |
+| Android bot          | Python + Appium client | Active         | `python -m idle_outpost_bot` | `idle_outpost_bot/loop.py`   |
+| Calibration assets   | YAML + PNG templates   | Active         | `idle_outpost_bot/calibrate.py` | OCR / template matchers   |
+| Local dev tooling    | `uv` lockfile          | Active         | `pyproject.toml` / `uv.lock` | Optional `[bot]` extras      |
 
-1. `scraper.py` — 공개 웹에서 프로모션 코드를 수집합니다.
-2. `redeemer.py` — 새 코드를 게임 HTTP API로 등록(클레임)합니다.
-3. `claim_api.py` — 클레임 HTTP 호출을 래핑합니다.
-4. `store.py` — 모든 결과를 단일 영속 레이어에 기록합니다.
-5. `notifier.py` — 결과를 단일 알림 어댑터로 푸시합니다.
-6. (옵션) `idle_outpost_bot/` — 안드로이드 디바이스에서 비전 기반 UI 자동화.
-7. (옵션) `worker/` — Cloudflare Edge에서 스케줄링 트리거.
+## At a Glance
 
-English:
+1. `scraper.py` 가 외부 코드 소스를 가져와 `store.py` 에 저장합니다.
+2. `auth.py` + `claim_api.py` 가 게임 측 API 로 일일 보상과 코드를 클레임합니다.
+3. `redeemer.py` 가 결과를 `store.py` 에 반영하고 `notifier.py` 가 알림을 발송합니다.
+4. `worker/` 가 외부에서 조회 가능한 읽기 전용 HTTP API 를 제공합니다.
+5. `idle_outpost_bot/` 은 안드로이드 기기에서 동일한 일일 루틴을 자동화합니다.
 
-1. `scraper.py` collects promo codes from public web sources.
-2. `redeemer.py` registers new codes through the game's HTTP API.
-3. `claim_api.py` wraps the claim HTTP call.
-4. `store.py` records every result in a single persistence layer.
-5. `notifier.py` pushes results through one notification adapter.
-6. (optional) `idle_outpost_bot/` runs vision-based UI automation on Android.
-7. (optional) `worker/` triggers scheduled runs at the Cloudflare Edge.
+운영자가 가장 자주 만지는 진입점은 `python main.py` (파이프라인) 와 `npx wrangler deploy` (Worker),
+그리고 `python -m idle_outpost_bot` (봇) 입니다.
 
-## 목차 / Contents
+## Table of Contents
 
-- [목적 / Purpose](#목적--purpose)
-- [패키지 구성 / Package contents](#패키지-구성--package-contents)
-- [첫 번째로 읽을 파일 / First files to read](#첫-번째로-읽을-파일--first-files-to-read)
-- [API / 진입점 / Entry points](#api--진입점--entry-points)
-- [빠른 시작 / Quickstart](#빠른-시작--quickstart)
-- [설정 / Configuration](#설정--configuration)
-- [명령 참조 / Commands reference](#명령-참조--commands-reference)
-- [로컬 개발 / Local development](#로컬-개발--local-development)
-- [테스트 / Testing](#테스트--testing)
-- [기여 / Contributing](#기여--contributing)
-- [운영 및 도움말 / Operations & help](#운영-및-도움말--operations--help)
-- [유지보수자 / Maintainers](#유지보수자--maintainers)
-- [추가 문서 / Further documentation](#추가-문서--further-documentation)
-- [라이선스 / License](#라이선스--license)
+- [Package Contents](#package-contents)
+- [Architecture](#architecture)
+- [Quickstart](#quickstart)
+- [Commands Reference](#commands-reference)
+- [Configuration](#configuration)
+- [Local Development](#local-development)
+- [Testing](#testing)
+- [Bot Calibration](#bot-calibration)
+- [Maintainers](#maintainers)
+- [License](#license)
 
-## 목적 / Purpose
+## Package Contents
 
-`idle-outpost-codes`는 모바일 게임 *Idle Outpost*의 프로모션 코드를 모니터링하고 일일 보상을 자동으로 클레임하기 위한 Python 패키지입니다. 수집과 클레임 두 단계가 같은 저장소와 같은 알림 채널을 공유해 멱등(idempotent)이며 재시작에 안전합니다.
+| Path                        | Role                                                                 |
+| --------------------------- | -------------------------------------------------------------------- |
+| `main.py`                   | 파이프라인 오케스트레이터 (스크랩 → 클레임 → 알림).                   |
+| `scraper.py`                | 공개 코드 소스 파싱 (BeautifulSoup 기반).                            |
+| `claim_api.py`              | 게임 측 일일 보상 / 코드 클레임 HTTP 호출.                           |
+| `redeemer.py`               | 클레임 결과 검증 및 회수 처리.                                        |
+| `auth.py`                   | 클레임 API 인증 토큰 발급/갱신.                                       |
+| `store.py`                  | 코드/상태 영속화 추상화 (파일/메모리 백엔드).                         |
+| `notifier.py`               | 결과 알림 (콘솔 / 확장 훅).                                           |
+| `worker/src/index.ts`       | Cloudflare Worker HTTP 핸들러.                                       |
+| `worker/wrangler.jsonc`     | Worker 배포 설정.                                                    |
+| `idle_outpost_bot/`         | Appium 기반 안드로이드 자동화 패키지.                                 |
+| `idle_outpost_bot/loop.py`  | 일일 루프 본체.                                                       |
+| `idle_outpost_bot/driver.py`| Appium 드라이버 래퍼.                                                |
+| `idle_outpost_bot/vision.py`| PaddleOCR + 템플릿 매칭 비전 파이프라인.                             |
+| `idle_outpost_bot/calibrate.py` | 캘리브레이션 도구 (OCR/이미지 자산 등록).                         |
+| `idle_outpost_bot/calibration/` | 화면별 OCR YAML 과 PNG 템플릿 자산.                               |
+| `idle_outpost_bot/safety.py`| 안전 가드 (탭 횟수 제한, 무한 루프 차단).                            |
+| `idle_outpost_bot/state.py` | 봇 상태 머신.                                                        |
+| `idle_outpost_bot/notify.py`| 봇 알림 훅.                                                          |
+| `idle_outpost_bot/i18n_ko.properties` | 한국어 OCR/UI 라벨.                                          |
+| `pyproject.toml` / `uv.lock`| Python 의존성 잠금.                                                  |
 
-핵심 사용자:
+## Architecture
 
-- 게임 신규/복귀 플레이어 — 새 코드를 놓치지 않고 자동으로 클레임.
-- 다중 계정 운영자 — 여러 계정의 일일 보상을 스케줄링.
-- 자동화 연구자 — 게임 자동화 참고 구현(봇 모듈).
+세 컴포넌트는 같은 데이터 모델(코드 목록 + 일일 클레임 상태) 을 공유하지만 배포 표면이 다릅니다.
 
-이 패키지가 유용한 이유: 프로모션 코드는 자주 교체되고 인게임 UI 클레임 절차가 여러 단계라 수동 루프가 비효율적입니다. 단일 CLI가 모니터링/클레임/기록을 처리해 수동 루프를 제거합니다.
+| Tier            | Where it runs         | Responsibility                                       | Talks to                  |
+| --------------- | --------------------- | ---------------------------------------------------- | ------------------------- |
+| Pipeline        | 로컬 / 스케줄러       | 스크랩 → 인증 → 클레임 → 저장 → 알림                 | 게임 API, 알림 훅         |
+| Worker API      | Cloudflare Workers    | 외부 조회용 읽기 전용 HTTP                           | Pipeline 의 출력 저장소   |
+| Android bot     | USB / Wi-Fi 디바이스  | 동일 일일 루틴을 UI 레벨에서 재현                     | 게임 클라이언트           |
 
-운영 준비도: 스크래퍼 + 클레임 CLI는 사전 배포 단계지만 일상적 사용에 안정적입니다. 안드로이드 봇은 실험적이며 게임 UI 변경에 취약합니다. 자세한 주의 사항은 [`idle_outpost_bot/README.md`](idle_outpost_bot/README.md)와 [`CALIBRATION_FULL.md`](idle_outpost_bot/CALIBRATION_FULL.md)를 참조하세요.
+### Request Flow (Pipeline)
 
-## 패키지 구성 / Package contents
+1. `main.py` 가 스케줄러/수동 호출로 시작됩니다.
+2. `scraper.py` 가 코드 소스에서 활성 코드를 추출해 `store.py` 에 기록합니다.
+3. `auth.py` 가 만료된 토큰을 검사하고 필요 시 재발급합니다.
+4. `claim_api.py` + `redeemer.py` 가 일일 보상과 코드를 게임 API 에 요청합니다.
+5. `notifier.py` 가 성공/실패 요약을 발송합니다.
 
-루트는 Python CLI 패키지, `idle_outpost_bot/`은 옵션 안드로이드 봇, `worker/`는 옵션 Cloudflare Worker입니다.
+### Request Flow (Android Bot)
 
-| 경로 / Path | 역할 / Role | 언어 / Language |
-|---|---|---|
-| `main.py` | 단일 CLI 진입점 / single CLI entry point | Python |
-| `scraper.py` | 공개 웹 코드 수집 / public-web code collector | Python |
-| `redeemer.py` | 게임 API로 코드 등록 / code redemption via game API | Python |
-| `claim_api.py` | 클레임 HTTP 호출 래퍼 / claim-call wrapper | Python |
-| `auth.py` | 인증 헬퍼 / authentication helper | Python |
-| `store.py` | 영속 레이어(공유) / shared persistence layer | Python |
-| `notifier.py` | 알림 어댑터(공유) / shared notification adapter | Python |
-| `pyproject.toml` | 패키지 메타 + 의존성 / package meta + deps | TOML |
-| `uv.lock` | 잠긴 의존성 그래프 / locked dep graph | TOML |
-| `LICENSE` | MIT 라이선스 / MIT license | — |
-| `CONTRIBUTING.md` | 기여 가이드 / contribution guide | — |
-| `video1.png` | 데모 / demo screenshot | image |
-| `idle_outpost_bot/` | 옵션 안드로이드 비전 봇 / optional Android vision bot | Python |
-| `idle_outpost_bot/calibration/` | OCR 템플릿 + 캘리브레이션 자산 / OCR templates + calibration assets | YAML + PNG |
-| `idle_outpost_bot/AD_REWARDS.md` | 광고 보상 메모 / ad-reward notes | — |
-| `idle_outpost_bot/API_RESEARCH.md` | API 리서치 노트 / API research notes | — |
-| `idle_outpost_bot/AUTOMATION_TARGETS.md` | 자동화 대상 인벤토리 / automation-target inventory | — |
-| `idle_outpost_bot/CALIBRATION_FULL.md` | 캘리브레이션 가이드 / calibration guide | — |
-| `idle_outpost_bot/JADX_FULL_INVENTORY.md` | 디컴파일 인벤토리 / decompile inventory | — |
-| `idle_outpost_bot/i18n_ko.properties` | 한국어 i18n / Korean i18n | properties |
-| `worker/` | 옵션 Cloudflare Worker / optional CF Worker | TypeScript |
-| `worker/src/index.ts` | Worker 핸들러 / Worker handler | TypeScript |
-| `worker/wrangler.jsonc` | Worker 설정 / Worker config | JSONC |
-| `worker/package.json` | Node 의존성 / Node deps | JSON |
+1. `python -m idle_outpost_bot` 이 `loop.py` 의 상태 머신을 시작합니다.
+2. `driver.py` 가 Appium 세션을 열고 `safety.py` 가 동작 한도를 초기화합니다.
+3. `vision.py` 가 PaddleOCR 과 `calibration/` 의 PNG/YAML 자산을 사용해 현재 화면을 판별합니다.
+4. `actions.py` 가 화면별로 정의된 탭/스와이프/입력 시퀀스를 실행합니다.
+5. `state.py` 가 다음 화면으로 전이하고 루프가 종료 조건을 만족할 때까지 반복합니다.
 
-## 첫 번째로 읽을 파일 / First files to read
+### Request Flow (Worker API)
 
-운영자가 가장 먼저 볼 파일 권장 순서:
+1. `worker/src/index.ts` 가 HTTP 요청을 수신합니다.
+2. 핸들러가 저장된 코드/상태를 조회해 JSON 으로 응답합니다.
+3. 인증이 필요한 경로는 `wrangler.jsonc` 의 시크릿/바인딩을 사용합니다.
 
-1. [`README.md`](README.md) (이 파일) — 무엇이 무엇인지.
-2. [`pyproject.toml`](pyproject.toml) — 의존성과 옵션 그룹.
-3. [`main.py`](main.py) — 단일 진입점의 명령 구조.
-4. [`store.py`](store.py) — 영속 모델(중복 방지 키).
-5. [`notifier.py`](notifier.py) — 알림 어댑터 인터페이스.
-6. (봇 활성화 시) [`idle_outpost_bot/README.md`](idle_outpost_bot/README.md).
-7. (워커 활성화 시) [`worker/README.md`](worker/README.md).
+## Quickstart
 
-## API / 진입점 / Entry points
-
-### CLI 진입점 / CLI entry point
-
-- `python main.py` — 단일 진입점. 사용 가능한 서브커맨드와 플래그는 `--help`로 확인합니다.
-
-### Python 모듈 진입점 / Python module entry points
-
-| 모듈 / Module | 역할 / Role |
-|---|---|
-| `idle_outpost_codes.scraper` | 공개 웹에서 코드 수집 |
-| `idle_outpost_codes.redeemer` | 게임 API로 코드 클레임 |
-| `idle_outpost_codes.claim_api` | 클레임 HTTP 호출 |
-| `idle_outpost_codes.auth` | 인증 헬퍼 |
-| `idle_outpost_codes.store` | 영속 레이어 |
-| `idle_outpost_codes.notifier` | 알림 어댑터 |
-
-### (옵션) Worker 엔드포인트 / Optional Worker endpoint
-
-`worker/src/index.ts`는 Cloudflare Workers 핸들러입니다. HTTP 요청 또는 Cron Trigger로 스케줄 실행을 시작할 수 있습니다. 정확한 경로와 페이로드는 [`worker/README.md`](worker/README.md)를 참조하세요.
-
-### (옵션) Bot 진입점 / Optional Bot entry point
-
-`idle_outpost_bot/__main__.py`는 안드로이드 디바이스에서 비전 기반 자동화를 시작합니다. 디바이스 연결과 캘리브레이션이 사전 요구됩니다.
-
-## 빠른 시작 / Quickstart
-
-### 1. 저장소 준비 / Get the source
+### 1. 파이프라인 (Python CLI)
 
 ```bash
 git clone <repository-url> idle-outpost-codes
 cd idle-outpost-codes
-```
-
-> 참고: 사내 Git 호스트를 사용하세요. README는 외부 원격 URL을 가정하지 않습니다.
-
-### 2. 의존성 설치 / Install dependencies
-
-`uv` 사용(권장):
-
-```bash
 uv sync
+cp .env.example .env   # 실제 파일이 없으면 아래 Configuration 참고
+uv run python main.py
 ```
 
-또는 pip:
+### 2. Cloudflare Worker
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
-pip install -e .
+cd worker
+npm install
+npx wrangler dev      # 로컬 개발
+npx wrangler deploy   # 배포
 ```
 
-### 3. 환경 변수 / Environment variables
-
-`.env` 파일을 작성합니다. 실제 키 이름은 [`auth.py`](auth.py)와 [`notifier.py`](notifier.py)의 `os.getenv`/`dotenv` 사용처에서 확인하세요.
-
-```dotenv
-# 예시 — 실제 키 이름은 코드 내 환경변수 사용처를 확인하세요
-IDLE_OUTPOST_AUTH_TOKEN=
-IDLE_OUTPOST_NOTIFY_WEBHOOK=
-```
-
-### 4. 첫 실행 / First run
-
-```bash
-python main.py --help
-```
-
-사용 가능한 서브커맨드 출력 후 일반적 흐름:
-
-```bash
-python main.py scrape
-python main.py redeem
-```
-
-### 5. (옵션) 안드로이드 봇 / Optional Android bot
+### 3. Android Bot (선택)
 
 ```bash
 uv sync --extra bot
-# 디바이스(Appium 서버) 연결 + OCR 템플릿 캘리브레이션 후
 python -m idle_outpost_bot
 ```
 
-자세한 절차는 [`idle_outpost_bot/README.md`](idle_outpost_bot/README.md)와 [`CALIBRATION_FULL.md`](idle_outpost_bot/CALIBRATION_FULL.md) 참조.
+`[bot]` extras 는 무거운 의존성 (Appium, Selenium, PaddleOCR, PaddlePaddle, Pillow, numpy, pyyaml) 을
+포함하므로, 파이프라인만 사용할 경우 설치하지 마세요.
 
-### 6. (옵션) Cloudflare Worker / Optional Cloudflare Worker
+## Commands Reference
 
-```bash
-cd worker
-npm install
-npx wrangler deploy
-```
+| Command                                          | Where   | Purpose                                       |
+| ------------------------------------------------ | ------- | --------------------------------------------- |
+| `uv run python main.py`                          | root    | 1 회 파이프라인 실행 (스크랩 + 클레임 + 알림). |
+| `uv run python -m idle_outpost_bot`              | root    | 안드로이드 봇 일일 루프 실행.                  |
+| `uv run python -m idle_outpost_bot.calibrate`    | root    | 새 화면 캘리브레이션 자산 생성.                |
+| `uv run python -m idle_outpost_bot.auto_calibrate` | root  | 캘리브레이션 자동 보정.                        |
+| `uv run python -m idle_outpost_bot.discover`     | root    | 디바이스/앱 메타데이터 탐색.                   |
+| `npx wrangler dev`                               | worker  | Worker 로컬 실행.                             |
+| `npx wrangler deploy`                            | worker  | Worker 배포.                                  |
+| `npm test`                                       | worker  | Worker 단위 테스트 (정의된 경우).             |
+| `uv run ruff check .`                            | root    | 린트.                                          |
+| `uv run basedpyright`                            | root    | 타입 검사.                                     |
 
-자세한 절차는 [`worker/README.md`](worker/README.md) 참조.
+## Configuration
 
-## 설정 / Configuration
+### Python 파이프라인
 
-| 영역 / Area | 위치 / Location | 형식 / Format |
-|---|---|---|
-| 의존성 / Dependencies | [`pyproject.toml`](pyproject.toml) | TOML |
-| 런타임 비밀값 / Runtime secrets | `.env` (코드에서 로드) | dotenv |
-| 봇 디바이스 / Bot device | [`idle_outpost_bot/settings.py`](idle_outpost_bot/settings.py) | Python |
-| 봇 상태 모델 / Bot state model | [`idle_outpost_bot/state.py`](idle_outpost_bot/state.py) | Python |
-| 봇 OCR 템플릿 / Bot OCR templates | `idle_outpost_bot/calibration/*.ocr.yaml` | YAML |
-| 봇 안전 정책 / Bot safety policy | [`idle_outpost_bot/safety.py`](idle_outpost_bot/safety.py) | Python |
-| 워커 트리거 / Worker trigger | [`worker/wrangler.jsonc`](worker/wrangler.jsonc) | JSONC |
+`.env` (또는 환경 변수) 로 다음 키를 제공합니다. 실제 키 이름은 사용 중인 게임/알림 백엔드에 맞춰 조정하세요.
 
-## 명령 참조 / Commands reference
+| Key                | Purpose                                          |
+| ------------------ | ------------------------------------------------ |
+| `GAME_AUTH_TOKEN`  | `auth.py` 가 사용하는 게임 API 토큰.             |
+| `GAME_API_BASE`    | `claim_api.py` 의 엔드포인트 베이스 URL.         |
+| `NOTIFY_WEBHOOK`   | `notifier.py` 의 알림 훅 (선택).                  |
+| `STORE_BACKEND`    | `store.py` 백엔드 선택 (예: `file`, `memory`).   |
+| `LOG_LEVEL`        | 로깅 레벨 (예: `INFO`, `DEBUG`).                 |
 
-CLI 서브커맨드(실제 이름은 [`main.py`](main.py)에서 확인):
+### Cloudflare Worker
 
-| 명령 패턴 / Pattern | 목적 / Purpose |
-|---|---|
-| `python main.py --help` | 사용 가능한 서브커맨드 표시 |
-| `python main.py scrape` | 공개 소스에서 새 코드 수집 |
-| `python main.py redeem` | 미등록 코드 클레임 |
-| `python main.py` (기본) | 전체 파이프라인 실행 |
+`worker/wrangler.jsonc` 에서 다음을 확인하세요.
 
-모든 서브커맨드는 결과를 `store.py`에 기록하며 `notifier.py`로 알림을 발송합니다.
+| Setting             | Purpose                                          |
+| ------------------- | ------------------------------------------------ |
+| `name`              | Worker 이름.                                     |
+| `main`              | 엔트리 (`src/index.ts`).                         |
+| `compatibility_date`| Workers 런타임 버전.                             |
+| `vars`              | 비밀이 아닌 환경 변수.                           |
+| `kv_namespaces`     | (선택) 코드/상태 저장소 바인딩.                   |
+| `secrets`           | 인증 토큰 등 — `wrangler secret put` 으로 주입.  |
 
-봇/워커 명령:
+### Android Bot
 
-| 명령 / Command | 목적 / Purpose |
-|---|---|
-| `python -m idle_outpost_bot` | 안드로이드 비전 자동화 시작 |
-| `python -m idle_outpost_bot.calibrate` | OCR 템플릿 캘리브레이션 |
-| `python -m idle_outpost_bot.auto_calibrate` | 자동 캘리브레이션 |
-| `cd worker && npm run dev` | Worker 로컬 실행(wrangler dev) |
-| `cd worker && npx wrangler deploy` | Worker 배포 |
+캘리브레이션 자산은 `idle_outpost_bot/calibration/` 에 YAML + PNG 쌍으로 저장되며, `settings.py` 와
+`config_loader.py` 가 이를 로드합니다. 화면 인식이 흔들리면 `calibrate.py` 로 자산을 재생성하세요.
 
-## 로컬 개발 / Local development
+| Asset                      | Purpose                                          |
+| -------------------------- | ------------------------------------------------ |
+| `*.png`                    | 템플릿 매칭용 기준 이미지.                       |
+| `*.ocr.yaml`               | OCR 좌표/라벨 메타데이터.                         |
+| `*.yaml` (대형 정의)       | 화면 단위 상태 정의 (`main_screen.yaml` 등).     |
+| `i18n_ko.properties`       | 한국어 라벨. 다른 언어 추가 시 동일 키 사용.     |
 
-- Python 3.11+ 가상환경 사용(`.venv`).
-- 린트: `ruff`(설정은 [`pyproject.toml`](pyproject.toml)).
-- 타입 체크: `basedpyright`(설정은 [`pyproject.toml`](pyproject.toml)).
-- 의존성 잠금: [`uv.lock`](uv.lock) 커밋 필수.
-- 보안: 디바이스 IP/계정 정보는 커밋 금지. 호스트는 `localhost` 또는 환경변수로만 지정.
+## Local Development
 
-봇 모듈 작업 시:
+- Python: [`uv`](https://docs.astral.sh/uv/) 로 `uv sync` → `uv run python main.py`.
+- Worker: `cd worker && npm install && npx wrangler dev`.
+- 봇: Appium 서버가 로컬에서 동작 중이어야 하며, ADB 로 디바이스가 연결되어 있어야 합니다.
+- 가상환경은 `.venv` (basedpyright 의 `venv` 설정과 일치) 를 권장합니다.
 
-```bash
-uv sync --extra bot
-python -m idle_outpost_bot.calibrate
-```
+### 코드 스타일
 
-OCR 템플릿은 `idle_outpost_bot/calibration/*.ocr.yaml`에 있고, 동일 경로의 PNG가 기준 이미지입니다. 화면 UI가 바뀌면 두 파일을 함께 갱신하세요.
+- Ruff: line-length 100, target Python 3.11 (`pyproject.toml` 참고).
+- 타입 검사: basedpyright (`pyproject.toml` 의 `[tool.basedpyright]` 섹션).
 
-워커 모듈 작업 시:
+## Testing
 
-```bash
-cd worker
-npm install
-npm run dev
-```
+현재 저장소에는 별도 테스트 디렉터리가 포함되어 있지 않습니다. 권장 절차:
 
-## 테스트 / Testing
+1. `scraper.py` 파싱 로직 — 샘플 HTML/JSON 픽스처로 단위 테스트.
+2. `claim_api.py` / `redeemer.py` — 게임 API 응답 모킹으로 단위 테스트.
+3. `worker/src/index.ts` — `npm test` 또는 `vitest` 추가.
+4. `idle_outpost_bot/vision.py` — 캘리브레이션 자산 변경 시 회귀 테스트.
 
-저장소는 사전 배포 단계로 표준화된 테스트 인프라가 정해져 있지 않습니다. 권장 절차:
+## Bot Calibration
 
-1. 모의(mock) HTTP 서버를 두고 `scraper`/`redeemer`의 호출 단위 검증.
-2. `store`의 멱등성(같은 코드 재시도 시 중복 기록 없음) 회귀 검증.
-3. `notifier` 어댑터 인터페이스에 대한 페이크 어댑터 단위 테스트.
-4. 봇 변경 시 `idle_outpost_bot/calibration/`의 OCR 템플릿 재캘리브레이션 + 화면 단위 테스트.
+게임 클라이언트 UI 가 바뀌면 비전 파이프라인이 실패합니다. 이 경우:
 
-자동화된 테스트가 추가되면 이 섹션이 갱신됩니다.
+1. 새 화면의 스크린샷을 `idle_outpost_bot/calibration/<screen>.png` 로 저장합니다.
+2. `python -m idle_outpost_bot.calibrate` 으로 OCR 좌표 메타데이터를 생성합니다.
+3. `actions.py` 에 해당 화면의 시퀀스를 추가합니다.
+4. `safety.py` 의 한도 (탭 횟수, 최대 루프) 가 새 화면에 맞는지 확인합니다.
 
-## 기여 / Contributing
+자세한 절차는 `idle_outpost_bot/CALIBRATION_FULL.md` 와 `JADX_FULL_INVENTORY.md` 를 참고하세요.
 
-[`CONTRIBUTING.md`](CONTRIBUTING.md) 참조. 일반 원칙:
+## Maintainers
 
-- 새 코드 소스를 추가할 때는 `scraper.py`의 추상화에 맞춰 어댑터 형태로 작성.
-- 영속 스키마를 변경할 때는 `store.py`에서 마이그레이션 헬퍼를 함께 제공.
-- 봇 UI 변경 시 `idle_outpost_bot/calibration/`의 OCR 템플릿 + [`CALIBRATION_FULL.md`](idle_outpost_bot/CALIBRATION_FULL.md)를 함께 갱신.
-- 워커 변경 시 `worker/README.md`도 갱신.
+| Area                | Contact                                              |
+| ------------------- | ---------------------------------------------------- |
+| 파이프라인 / Worker | 저장소 소유자 (GitHub 이슈 트래커).                  |
+| Android 봇          | `idle_outpost_bot/AUTOMATION_TARGETS.md` 참고.       |
+| 게임 API 변경       | `idle_outpost_bot/API_RESEARCH.md` 참고.             |
 
-## 운영 및 도움말 / Operations & help
+상세 문서 위치:
 
-운영자가 자주 보는 항목:
+- `idle_outpost_bot/AD_REWARDS.md` — 광고 보상 흐름.
+- `idle_outpost_bot/API_RESEARCH.md` — 게임 API 분석 노트.
+- `idle_outpost_bot/AUTOMATION_TARGETS.md` — 자동화 대상 화면.
+- `idle_outpost_bot/CALIBRATION_FULL.md` — 캘리브레이션 전체 절차.
+- `idle_outpost_bot/JADX_FULL_INVENTORY.md` — APK 디컴파일 인벤토리.
+- `worker/README.md` — Worker 운영 노트.
+- `CONTRIBUTING.md` — 기여 절차.
 
-| 상황 / Situation | 조치 / Action |
-|---|---|
-| 파이프라인 동작 확인 / Pipeline check | `python main.py --help` + dry-run 옵션 확인 |
-| 중복 클레임 방지 / Duplicate-claim guard | `store.py`가 코드 ID로 멱등 보장 — 재시작 안전 |
-| 알림 채널 추가 / Add a notification backend | `notifier.py`에 새 어댑터 구현 추가 |
-| 게임 UI 변경 / Game UI change | 봇 모듈 캘리브레이션 자산 재캘리브레이션 |
-| 스크래퍼 소스 변경 / Scraper source change | `scraper.py`의 어댑터 시그니처 유지한 채 소스만 교체 |
-| 버그 리포트 / Bug report | 재현 절차 + 로그 + 환경 정보(디바이스/워커) 첨부 |
+## License
 
-도움이 필요하면 [`CONTRIBUTING.md`](CONTRIBUTING.md)의 연락처를 참조하세요.
-
-## 유지보수자 / Maintainers
-
-이 저장소는 게임 자동화/스크래핑 커뮤니티 기여로 유지됩니다. 신규 유지보수자는 [`CONTRIBUTING.md`](CONTRIBUTING.md)를 통해 합류할 수 있습니다. 공개된 개인 연락처는 README에 기재하지 않습니다 — 저장소 이슈 트래커와 [`CONTRIBUTING.md`](CONTRIBUTING.md)를 정식 채널로 사용하세요.
-
-## 추가 문서 / Further documentation
-
-| 문서 / Document | 위치 / Location | 내용 / Contents |
-|---|---|---|
-| 패키지 메타 / Package meta | [`pyproject.toml`](pyproject.toml) | 의존성 + 옵션 그룹 |
-| 봇 모듈 가이드 / Bot module guide | [`idle_outpost_bot/README.md`](idle_outpost_bot/README.md) | 디바이스 연결, 캘리브레이션 |
-| 광고 보상 메모 / Ad reward notes | [`idle_outpost_bot/AD_REWARDS.md`](idle_outpost_bot/AD_REWARDS.md) | 광고 보상 자동화 노트 |
-| API 리서치 / API research | [`idle_outpost_bot/API_RESEARCH.md`](idle_outpost_bot/API_RESEARCH.md) | 게임 API 조사 결과 |
-| 자동화 대상 / Automation targets | [`idle_outpost_bot/AUTOMATION_TARGETS.md`](idle_outpost_bot/AUTOMATION_TARGETS.md) | 자동화 가능한 화면 인벤토리 |
-| 캘리브레이션 가이드 / Calibration guide | [`idle_outpost_bot/CALIBRATION_FULL.md`](idle_outpost_bot/CALIBRATION_FULL.md) | OCR 템플릿 캘리브레이션 절차 |
-| 디컴파일 인벤토리 / Decompile inventory | [`idle_outpost_bot/JADX_FULL_INVENTORY.md`](idle_outpost_bot/JADX_FULL_INVENTORY.md) | APK 디컴파일 결과 |
-| 워커 가이드 / Worker guide | [`worker/README.md`](worker/README.md) | Cloudflare Worker 배포/실행 |
-| 기여 가이드 / Contributing | [`CONTRIBUTING.md`](CONTRIBUTING.md) | PR 절차, 코딩 규칙 |
-
-## 라이선스 / License
-
-MIT — 자세한 내용은 [`LICENSE`](LICENSE) 참조.
+이 저장소는 `LICENSE` 파일에 명시된 라이선스를 따릅니다.
